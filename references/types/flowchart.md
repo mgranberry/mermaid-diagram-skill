@@ -38,6 +38,46 @@ flowchart LR
     class A trigger
 ```
 
+### Edge-Case Examples
+#### Dense Multi-step Process
+```mermaid
+graph TD
+    A[Start] --> B{Decision Point}
+    B -->|Yes| C[Step One]
+    B -->|No| D[Alternate Step]
+    C --> E{Second Decision}
+    D --> E
+    E -->|Path A| F[Final Step A]
+    E -->|Path B| G{{Final Step B}}
+    F ==> H((End Here))
+    G ==> H
+```
+
+#### Complex Dependencies
+```mermaid
+flowchart LR
+    subgraph Initial
+        direction TB
+        A[Initial Task] --> B[/Manual Step/]
+    end
+
+    subgraph Parallel Tasks
+        direction LR
+        C[Task A]
+        D[Task B]
+    end
+
+    subgraph Dependencies
+        C -.-> E[Dependent Task 1]
+        D -.-> F[Dependent Task 2]
+        E --> G{{Final Merge}}
+        F --> G
+    end
+
+    classDef milestone fill:#ddd,stroke:#222,color:#000
+    G:::milestone
+```
+
 ## All Supported Syntax
 
 - **Direction**: `graph TD` (top-down), `graph LR` (left-right), `graph BT` (bottom-top), `graph RL` (right-left).
@@ -69,6 +109,9 @@ flowchart LR
 - Prefer `LR` for wide graphs with many parallel paths to reduce scrolling.
 - Use `TD` for sequential, step-by-step processes.
 - Use `subgraph` direction to mix layouts (e.g., a `TB` subgraph inside an `LR` graph).
+- Reduce fan-out: split any node with 5+ outgoing edges into a dispatcher → handlers group.
+- When crossings persist, try switching the global orientation (`graph TD` ↔ `graph LR`).
+- **Line breaks**: Use `<br>` in node labels, edge labels, and subgraph titles. `\n` does **not** work — it renders as literal text.
 
 ## Common Pitfalls
 - Special characters in labels (like `(` or `]`) require quoting: `["Label (text)"]`.

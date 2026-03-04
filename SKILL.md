@@ -81,7 +81,7 @@ Evidence artifacts are concrete examples that prove your diagram is accurate and
 
 **Mechanics for Mermaid**:
 - **Notes in sequence diagrams**: Use `Note over A,B: content` to show data payloads, API responses, or message formats.
-- **Node labels with line breaks**: Use `<br/>` in node labels to show multi-line content. Example: `A["POST /api/v1/run<br/>body: {runId, input}"]`
+- **Node labels with line breaks**: Use `<br>` in node labels to show multi-line content. Example: `A["POST /api/v1/run<br>body: {runId, input}"]`. Note: `<br>` works in most diagram types but **not** in class diagram members or sankey labels — see `references/syntax-pitfalls.md` Section 9 for the full compatibility matrix. Always prefer `<br>` over `<br/>` (the self-closing form fails in some contexts). Never use `\n` — it renders as literal text.
 - **Subgraph titles**: Use `subgraph "Section Name"` to add contextual labels to regions.
 - **Companion .md files**: For code-heavy evidence like large JSON payloads or code snippets, create a companion `.md` file alongside the `.mmd` with fenced code blocks.
 - **Acknowledge limitation**: Mermaid cannot embed arbitrary code blocks inside nodes. Keep node text concise and offload verbosity to companion files or Notes.
@@ -172,14 +172,46 @@ For multi-concept diagrams: **each major concept must use a different visual pat
 Before writing syntax, mentally trace how the eye moves through the diagram. There should be a clear visual story.
 
 ### Step 5: Generate Mermaid Syntax
-1. Choose diagram type: consult `references/diagram-type-guide.md` decision matrix.
-2. Load the per-type reference: open `references/types/<chosen-type>.md` for full syntax.
-3. Write the syntax — start with a `%%` comment block naming the diagram type and describing each section.
-4. Use meaningful node IDs (not `A`, `B`, `C` — use `authService`, `dbWrite`, `userInput`).
-5. Add `classDef` for semantic styling (trigger, success, error, ai, decision) — pull from `references/mermaid-theme.md`.
+1. Choose diagram type using the Decision Matrix below, then load the per-type reference: open `references/types/<chosen-type>.md` for full syntax.
+2. Write the syntax — start with a `%%` comment block naming the diagram type and describing each section.
+3. Use meaningful node IDs (not `A`, `B`, `C` — use `authService`, `dbWrite`, `userInput`).
+4. Add `classDef` for semantic styling (trigger, success, error, ai, decision) — pull from `references/mermaid-theme.md`.
 
 ### Step 6: Render & Validate
 Run the render script and validate the output. See the **Render & Validate** section below.
+
+---
+
+## Diagram Type Decision Matrix
+
+Quick lookup: match the visual pattern you need to the best diagram type.
+
+| Visual Pattern | Best Diagram Type |
+|----------------|-------------------|
+| Fan-out (one-to-many) | Flowchart |
+| Convergence (many-to-one) | Flowchart |
+| Sequence of steps / interactions | Sequence Diagram |
+| Hierarchy / tree | Mindmap |
+| State machine / lifecycle | State Diagram |
+| Object structure / relationships | Class Diagram |
+| System architecture / context | C4 Diagram |
+| Timeline / ordered events | Timeline Diagram |
+| Spiral/Cycle (loop) | State Diagram (self-transitions) or Flowchart with back-edge |
+| Side-by-side comparison | Parallel subgraphs in Flowchart |
+| Data schema / entity relationships | ER Diagram |
+| Flow volumes / resource allocation | Sankey Diagram |
+
+### Excluded Diagram Types
+
+Do **not** use these types — they lack structural argument capability or are too narrowly specialized:
+
+| Type | Reason Excluded |
+|------|-----------------|
+| Pie Chart | Simple percentages; lacks structural argument capability |
+| Gantt | Specifically for project scheduling, not conceptual mapping |
+| Git Graph | Limited to git branch visualization |
+| XY Chart | Quantitative data charting rather than structural diagramming |
+| User Journey | Overly specific; typically better represented as a Sequence Diagram |
 
 ---
 
@@ -294,11 +326,16 @@ First run downloads mmdc via npx — may take ~30s.
 - **Using subgraphs** — constrain placement of related nodes.
 - NOT coordinate adjustments.
 
-**Line crossing reduction**:
-- Declare nodes in reading order (top→bottom, left→right).
-- Minimize back-edges — isolate cycles in State diagrams or contained subgraphs.
-- Declare related nodes together in source.
-- Reduce fan-out: split any node with 5+ outgoing edges into a dispatcher → handlers.
+**Line crossing reduction** (line crossing is the primary visual quality challenge in auto-generated diagrams):
+- **Node declaration order matters**: The layout engine assigns ranks based on the order nodes appear in the source. Declare nodes in reading order (top→bottom, left→right). Earlier declarations occupy higher or leftmost ranks.
+- **Minimize back-edges**: Every edge that flows "backwards" to an earlier node forces a crossing. For cycles, use State diagrams or isolate the back-edge within a specific subgraph to contain the layout impact.
+- **Group related nodes in source**: Keep nodes that belong in the same subgraph or logical group together in the code. Scattered declarations lead to scattered placement and unnecessary crossings.
+- **Use subgraphs as layout hints**: Wrapping related nodes in a `subgraph` constrains their placement, effectively cordoning off areas to prevent global crossings.
+- **Apply direction per subgraph**: Each subgraph can define its own flow direction (e.g., `direction LR`). Mixing directions can resolve density issues in specific graph sectors.
+- **Reduce fan-out at single nodes**: A single node with many outgoing edges creates a "spider web" effect. Insert an intermediate "dispatcher" or group node to flatten the fan-out. Split any node with 5+ outgoing edges.
+- **ER diagram relation ordering**: Declare the entity with the highest connectivity first. Then, declare each related entity immediately following the relation that introduces it.
+- **Sequence diagrams are crossing-free by construction**: Columns are fixed. Optimize by declaring participants in their order of interaction (initiator on the left, primary responder next).
+- **When crossings persist**: Simply switching the global orientation (e.g., changing `graph TD` to `graph LR`) often eliminates most crossings in a complex layout.
 - See `references/diagram-type-guide.md` Part 3 for the full layout optimization guide.
 
 **When to stop**: syntax valid, layout communicates the concept, line crossings minimized, no overlapping labels, eye flows correctly through the diagram.
@@ -324,7 +361,7 @@ First run downloads mmdc via npx — may take ~30s.
 **Mermaid-Specific:**
 11. `classDef` used for semantic styling (trigger, success, error, ai, decision)?
 12. Output format correct (`.mmd` vs fenced block)?
-13. No excluded diagram types used (no Pie, Gantt, Git Graph, XY Chart)?
+13. No excluded diagram types used? (Excluded: Pie Chart, Gantt, Git Graph, XY Chart, User Journey — see Decision Matrix above)
 14. Node/edge declaration order follows reading direction (minimize line crossings)?
 15. No single node has 5+ edges without a dispatcher split?
 16. Back-edges isolated (cycles handled in State diagram or contained subgraph)?

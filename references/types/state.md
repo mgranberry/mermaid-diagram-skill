@@ -1,9 +1,10 @@
 # State Diagram
 
 ## When to Use
-- Object lifecycles and state machines.
-- UI state management and finite state machines (FSM).
-- Systems with discrete modes and specific triggers/transitions.
+- Modeling object lifecycle or system states.
+- Showing valid transitions between states.
+- Concurrent / parallel state regions.
+- Nested (composite) state machines.
 
 ## Syntax Reference
 
@@ -11,57 +12,123 @@
 ```mermaid
 stateDiagram-v2
     [*] --> Idle
-    Idle --> Processing : trigger
-    Processing --> Done : success
-    Processing --> Error : failure
+    Idle --> Processing : submit
+    Processing --> Done : complete
+    Processing --> Error : fail
+    Error --> Idle : retry
     Done --> [*]
 ```
 
-### Extended Example (with composite and concurrent states)
+### Long Labels (use `<br>` for line breaks)
+```mermaid
+stateDiagram-v2
+    state "A Really Long State Name<br>That Should Wrap" as LongState
+    state "Another Ridiculously Long State Name<br>That Also Wraps" as RidiculousState
+    [*] --> LongState : Trigger
+    LongState --> RidiculousState : AnotherTrigger
+    RidiculousState --> [*]
+```
+
+### Multi-Line State Values
+```mermaid
+stateDiagram-v2
+    state "First Line<br>Second Line<br>Third Line" as MultiLineState
+    [*] --> MultiLineState
+    MultiLineState --> FinalState
+    state "Ending<br>Line 1<br>Line 2<br>Line 3" as FinalState
+```
+
+### Composite and Concurrent States
 ```mermaid
 stateDiagram-v2
     direction LR
-    [*] --> Off
-    state Off {
-        [*] --> Sleeping
-        Sleeping --> Waking : timer
-    }
-    Off --> On : power button
-    state On {
-        [*] --> Ready
-        Ready --> Busy : task
-        Busy --> Ready : complete
+    [*] --> CompositeState
+    state CompositeState {
+        direction TB
+        [*] --> SubState1
+        SubState1 --> SubState2 : Event1
         --
-        [*] --> LoggerActive
+        [*] --> ConcurrentStateA
+        ConcurrentStateA --> ConcurrentStateB : Event2
     }
-    note right of On : Main system state
+    CompositeState --> [*]
+```
+
+### Edge Case: Deeply Nested Composite States
+```mermaid
+stateDiagram-v2
+    [*] --> SystemActive
+    state SystemActive {
+        [*] --> Initializing
+        Initializing --> Running : boot_complete
+
+        state Running {
+            [*] --> NormalOps
+            NormalOps --> Degraded : partial_failure
+            Degraded --> NormalOps : recovered
+
+            state NormalOps {
+                [*] --> Listening
+                Listening --> Handling : request_in
+                Handling --> Listening : response_sent
+            }
+        }
+
+        Running --> ShuttingDown : shutdown_signal
+        ShuttingDown --> [*]
+    }
+    SystemActive --> [*]
+```
+
+### Edge Case: Concurrent Regions with Dense Transitions
+```mermaid
+stateDiagram-v2
+    direction LR
+    [*] --> Active
+    state Active {
+        direction TB
+        state "Network Layer<br>Manages connections" as Network
+        state "Business Logic<br>Processes requests" as Logic
+        state "Persistence<br>Handles storage" as Storage
+
+        [*] --> Network
+        Network --> Logic : validated
+        Logic --> Storage : persist
+        Storage --> Network : ack
+        --
+        [*] --> HealthCheck
+        HealthCheck --> HealthCheck : poll_interval
+        note right of HealthCheck : Runs independently<br>of main pipeline
+    }
+    Active --> [*]
 ```
 
 ## All Supported Syntax
 
-- **Keyword**: `stateDiagram-v2` is required for the modern renderer.
-- **Start/End**: `[*]` represents the beginning and termination of the flow.
-- **States**: `state "Label" as Name` or just `Name`.
-- **Transitions**: `State1 --> State2 : transition label`.
-- **Composite States**: `state Name { ... }` for nesting.
-- **Concurrent States**: Use `--` divider within a state block.
-- **Notes**: `note right of State`, `note left of State`.
-- **Direction**: `direction TB` (top-down), `direction LR` (left-right).
-- **Choices/Forks/Joins**:
-    - `state Name <<choice>>`
-    - `state Name <<fork>>`
-    - `state Name <<join>>`
+- **Keyword**: `stateDiagram-v2` (always use v2).
+- **States**: Plain `StateName` or aliased `state "Description" as Alias`.
+- **Transitions**: `StateA --> StateB : label`.
+- **Start/End**: `[*]` for both initial and final pseudo-states.
+- **Composite**: `state Parent { ... }` with nested states inside.
+- **Concurrent regions**: `--` separator inside a composite state.
+- **Direction**: `direction LR` or `direction TB` (inside composite states too).
+- **Choice**: `state choice <<choice>>` for conditional branching.
+- **Fork/Join**: `state fork <<fork>>` and `state join <<join>>`.
+- **Notes**: `note right of State : text` or `note left of State : text`.
+- **Line breaks**: Use `<br>` inside quoted state descriptions. `\n` does **not** work — it renders as literal text.
 
 ## Layout Tips (type-specific)
-- Keep composite states self-contained to minimize complex routing.
-- Use `direction LR` for state machines that read naturally left-to-right (e.g., a multi-stage pipeline).
-- Use notes to provide context for complex transitions without cluttering the edge labels.
+- Use `direction LR` for wide, shallow machines; `direction TB` (default) for deep ones.
+- Declare states in transition order to help the layout engine.
+- Keep composite states to 2 nesting levels max — beyond that, split into separate diagrams.
+- Concurrent regions (`--`) work best with 2 regions; 3+ can produce cramped layouts.
 
 ## Common Pitfalls
-- Use `stateDiagram-v2` to avoid the legacy renderer.
-- `[*]` is both the entry and exit point; ensure logical flow between them.
-- Deep nesting of states can make the diagram difficult to read.
-- `style StateName fill:#color` does not work on composite states — it silently fails. It only applies to simple (leaf) states.
+- **Using `\n` for line breaks** — Always use `<br>` in quoted state descriptions. `\n` renders as literal text.
+- **Missing `end` or `}`** — Every composite state `state Name { ... }` needs its closing brace.
+- **Mixing v1 and v2 syntax** — Always use `stateDiagram-v2`. The v1 syntax lacks features and has layout quirks.
+- **Over-nesting composites** — 3+ nesting levels become unreadable. Split into separate diagrams.
+- **Concurrent region overuse** — More than 2 concurrent regions in one composite state produces cramped layouts.
 
 ## classDef Support
-Limited. `style StateName fill:#color` works for simple (leaf) states only — not composite states. Use `%%{init}%%` theme overrides for broader styling.
+Limited. `classDef` can style states in v2: `classDef myStyle fill:#f9f,stroke:#333` then `StateName:::myStyle`.

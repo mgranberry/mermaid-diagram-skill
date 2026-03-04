@@ -40,6 +40,7 @@ timeline
 - Horizontal layout is fixed by the renderer.
 - Use section groupings to keep the timeline readable if there are many events.
 - Keep event descriptions short and punchy; long text will wrap and may clutter the layout.
+- **Line breaks**: Use `<br>` in section titles and event text. Prefer `<br>` over `<br/>` — the self-closing form fails in some timeline contexts. `\n` does **not** work — it renders as literal text.
 
 ## Common Pitfalls
 - Time periods (labels) are free-form text and are NOT parsed as date objects.

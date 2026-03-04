@@ -58,6 +58,7 @@ mindmap
 - Mindmaps radiate from the center; the engine automatically balances children across quadrants.
 - Declaration order influences which side children appear on; if a mindmap feels unbalanced, try reordering the first-level branches.
 - Keep branch names short and use child nodes for detail to prevent visual clutter.
+- **Line breaks**: Use `<br>` in node labels to split long text across lines. `\n` does **not** work — it renders as literal text.
 
 ## Common Pitfalls
 - Structure is strictly indentation-based; mixing tabs and spaces will break the diagram.

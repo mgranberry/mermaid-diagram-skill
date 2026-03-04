@@ -39,6 +39,7 @@ sankey-beta
 - Order source nodes by total flow volume (largest first) to create a cleaner top-to-bottom visual hierarchy.
 - The engine handles the complex proportional scaling and layout automatically.
 - Keep source/target names concise as they are used as node labels.
+- **Line breaks**: Line breaks (`<br>`, `<br/>`, `\n`) do **not** work in Sankey labels — they render as literal text. Keep node names short and single-line.
 
 ## Common Pitfalls
 - Requires the `sankey-beta` keyword as it is a beta feature.

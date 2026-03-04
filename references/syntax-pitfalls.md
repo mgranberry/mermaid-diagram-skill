@@ -4,6 +4,58 @@ Quick reference for avoiding the most frequent Mermaid render failures. Consult 
 
 ---
 
+## Flowchart-Specific Issues
+
+### 1. Label Placement on Curved Edges
+- **Problem**: Labels (e.g., "Yes", "No") on curved edges can end up inconsistently placed, either too far from the source node or target node.
+- **Fix**: Manually adjust label alignment or edit the curve direction to maintain equal spacing.
+
+### 2. Edge Label Clipping
+- **Problem**: Long edge labels may overlap or be clipped by the line if placed in dense diagrams.
+- **Fix**: Use notes (`Note over`) or external labeling instead of long inline edge labels.
+
+### 3. Subgraph Disconnection
+- **Problem**: Visually disconnected subgraphs can confuse readers. For example, an "Input" group without output to dependent processes.
+- **Fix**: Ensure every subgraph ends with a clear output to subsequent connected components.
+
+### 4. Connector Path Efficiency
+- **Problem**: Unoptimized paths (e.g., shallow returns, unnecessary loops) result in wasted space and poor alignment.
+- **Fix**: Minimize connector path length to improve overall readability. Tighten loops and prioritize straight connections.
+
+### 5. Gateways Missing Termination Paths
+- **Problem**: Some gateways (decision nodes) lead to incomplete logic flows where there’s no defined result for certain conditions (e.g., no "Yes" path).
+- **Fix**: Ensure all paths from gateways lead to valid endpoints or re-entry points in the flow logic.
+
+### 6. Feedback Loop Ambiguity
+- **Problem**: Feedback loops lack detail on how data is passed between nodes, creating ambiguity in iterative processes.
+- **Fix**: Clearly label edges indicating data or process flow within loops.
+
+## Class Diagram-Specific Issues
+
+### 1. Nested Class Structures
+- **Problem**: Mermaid syntax does not natively support nested classes.
+- **Impact**: Attempts to include inner classes like `class Inner { ... }` or their references break the parser with `STRUCT_STOP` errors.
+- **Workaround**: Represent inner classes as separate `class Inner` and associate them with the parent class (`Outer -- Inner`). Avoid complex nesting.
+
+### 2. Long Labels
+- **Problem**: Long labels for attributes/methods overflow or truncate node text in compact layouts.
+- **Fix**: Line breaks (`<br>` or `<br/>`) do **not** work inside class members — they render as literal text. Instead, abbreviate method signatures or split across multiple entries:
+    ```mermaid
+    classDiagram
+        class User {
+            +longMethod(arg1: String, arg2: Int) void
+        }
+    ```
+    Place excessive detail in external notes. Line breaks **do** work in relationship labels: `ClassA --|> ClassB : "Label<br>Line Two"`.
+
+### 3. Missing Multiplicities or Associations
+- **Problem**: Multiplicity (e.g., 1..*) is visually cryptic without corresponding role associations (labels).
+- **Fix**: Always provide association roles for clarity. Example:
+    ```mermaid
+    classDiagram
+        Order "1" --> "*" Product : contains
+    ```
+
 ## 1. Unquoted Special Characters (THE #1 FAILURE)
 
 Any label containing parentheses, @, /, <, >, :, commas, or pipes must be wrapped in double quotes. The parser will fail if these characters are found naked in node definitions.
@@ -22,7 +74,7 @@ flowchart TD
 
 ## 2. HTML Tags in Labels
 
-Most HTML tags render inconsistently or crash the parser. Only `<br/>` is safe for line breaks, and even it should be wrapped in quotes for stability.
+Most HTML tags render inconsistently or crash the parser. Only `<br>` is reliably safe for line breaks across most diagram types (see Section 9 for the full compatibility matrix). Always wrap labels containing `<br>` in double quotes. Prefer `<br>` over `<br/>` — the self-closing form fails in some contexts (e.g., timeline event details).
 
 ❌ Bad:
 ```mermaid
@@ -125,21 +177,54 @@ classDiagram
     ClassA --|> ClassB
 ```
 
-## 9. \n Instead of <br/>
+## 9. Line Breaks in Labels — `<br>` Compatibility Matrix
 
-The literal `\n` character does not create line breaks in Mermaid labels. Use `<br/>` inside double quotes instead.
+The literal `\n` character **never** creates line breaks in any Mermaid diagram type. It always renders as the literal text `\n`. Use `<br>` (preferred) or `<br/>` inside double-quoted labels instead — but support varies by diagram type.
 
-❌ Bad:
+### Compatibility Matrix
+
+| Diagram Type | Node/State Labels | Edge/Relationship Labels | Notes/Descriptions |
+|---|---|---|---|
+| **Flowchart** | ✅ `<br>` `<br/>` | ✅ `<br>` `<br/>` | N/A |
+| **Sequence** | ✅ `<br>` `<br/>` (participant names) | ✅ `<br>` `<br/>` (messages) | ✅ `<br>` |
+| **State** | ✅ `<br>` `<br/>` | ✅ `<br>` | N/A |
+| **Class** | ❌ No line breaks in members | ✅ `<br>` (relationship labels only) | N/A |
+| **ER** | N/A (attributes are rows) | ⚠️ Inconsistent — works in mmdc CLI, fails in IntelliJ | N/A |
+| **C4** | ✅ `<br>` `<br/>` (descriptions) | ✅ `<br>` `<br/>` | N/A |
+| **Mindmap** | ✅ `<br>` `<br/>` | N/A | N/A |
+| **Timeline** | ✅ `<br>` (section names, event details) | N/A | ⚠️ `<br/>` fails in event details |
+| **Sankey** | ❌ No line breaks | ❌ No line breaks | N/A |
+
+### Key Rules
+
+1. **Always use `<br>` over `<br/>`** — `<br>` works everywhere that supports line breaks. `<br/>` fails in some edge cases (e.g., timeline event details).
+2. **Always wrap labels containing `<br>` in double quotes** — e.g., `["Line One<br>Line Two"]`.
+3. **`\n` never works** — it renders as literal text in every diagram type.
+4. **Class diagram members cannot have line breaks** — split long signatures across multiple methods or use abbreviations.
+5. **Sankey labels cannot have line breaks** — keep labels short; use abbreviations.
+
+### Examples
+
+❌ Bad (`\n` — never works):
 ```mermaid
 flowchart TD
     A[Line One\nLine Two]
 ```
 
-✅ Good:
+✅ Good (`<br>` — works in flowchart):
 ```mermaid
 flowchart TD
-    A["Line One<br/>Line Two"]
+    A["Line One<br>Line Two"]
 ```
+
+⚠️ Class diagram members — no line break support:
+```mermaid
+classDiagram
+    class MyClass {
+        +longMethod(arg1: String, arg2: Int) void
+    }
+```
+Keep signatures concise. Line breaks render as literal `<br>` text inside class members.
 
 ## 10. Missing end Keywords
 

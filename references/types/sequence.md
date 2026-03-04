@@ -43,6 +43,40 @@ sequenceDiagram
     Note over User,API: Session begins here
 ```
 
+### Edge Case: Nested Blocks + Heavy Participants
+```mermaid
+sequenceDiagram
+    autonumber
+    actor LongName as "User with a Ridiculously Long Name"
+    participant Frontend
+    box "Backend Architecture" #e0e0ff
+        participant Auth_Service
+        participant State_Manager
+        participant DB_Handler
+    end
+    participant Cache_A as "Cache Service A"
+    participant Cache_B as "Cache Service B"
+
+    LongName->>+Frontend: Login Attempt
+    Frontend->>+Auth_Service: Validate Credentials
+    alt Credentials Valid
+        Auth_Service->>State_Manager: Update Session
+        State_Manager-->>+Cache_A: Add Session (100ms ETA)
+    else Invalid Credentials
+        Auth_Service-->>-LongName: Deny Access
+    end
+
+    par Cache Replication
+        State_Manager->>+Cache_A: Write-Through
+        Cache_A-->>-State_Manager: Acknowledge
+    and Persistent Backup
+        State_Manager->>+DB_Handler: Persist Session
+        DB_Handler-->>-State_Manager: Committed
+    end
+
+    LongName-->>Frontend: End Interaction
+```
+
 ## All Supported Syntax
 
 - **Keywords**: `sequenceDiagram`, `autonumber`.
@@ -67,6 +101,7 @@ sequenceDiagram
     - `break` ... `end`
     - `rect color` ... `end` (background color)
 - **Boxes**: `box "Label" color` ... `end`.
+- **Line breaks**: Use `<br>` in quoted participant names, messages, and notes. `\n` does **not** work — it renders as literal text.
 
 ## Layout Tips (type-specific)
 
@@ -80,7 +115,7 @@ Typical pattern: `User → Frontend → API Gateway → Service → Database`
 
 ```mermaid
 sequenceDiagram
-    %% LEFT: initiator → RIGHT: deepest dependency
+    Note over User: Initiator --> Deepest dependency
     actor User
     participant UI as "Frontend"
     participant API as "API Gateway"
@@ -96,9 +131,9 @@ If you skip declaration order, Mermaid assigns columns by first appearance in me
 ```mermaid
 sequenceDiagram
     autonumber
-    Client->>API: Request    %% Step 1
-    API->>DB: Query          %% Step 2
-    DB-->>API: Result        %% Step 3
+    Client->>API: Request    Note right of Client: Step 1 (Request initiated)
+    API->>DB: Query          Note right of API: Step 2 (Query executed)
+    DB-->>API: Result        Note right of DB: Step 3 (Result returned)
 ```
 
 Without autonumber, discussing the diagram requires awkward descriptions ("the arrow from API to DB"). With it, you write: "At step 2, the API queries the database." Always include `autonumber` unless the diagram has fewer than 3 messages.
@@ -109,11 +144,14 @@ Without autonumber, discussing the diagram requires awkward descriptions ("the a
 - **Never deactivate a participant inside both branches of an `alt`/`else` block.** Mermaid tracks activations linearly — deactivating in both paths causes "inactivate an inactive participant" errors. Instead, keep activations within a single branch or outside the `alt` block entirely.
 
 ## Common Pitfalls
+
 - **Omitting participant declarations** — Mermaid will infer column order from first message appearance, which usually produces a worse layout than explicit declaration.
 - **Redefining participants mid-flow** — Declare all participants at the top; don't re-declare after messages have started.
 - **Conditional deactivation** — Using `-` deactivation inside both `alt` and `else` branches causes "inactive participant" errors. Deactivate outside the block or only in one branch.
 - **Over-nesting** — Complex loops and opt blocks stacked 3+ deep become unreadable. Split into separate diagrams.
 - **Missing `autonumber`** — Technical flows without step numbers are hard to reference in surrounding documentation.
+- **Using `\n` for line breaks** — Always use `<br>` instead. `\n` renders as literal text in participant names, messages, and notes.
+- **Clipping or Overlapping Notes** — Placing notes in wide scenarios can result in notes being clipped or misaligned; try positioning them over participants.
 
 ## classDef Support
 No. Minimal styling via `Note`, `rect`, and `box`.
