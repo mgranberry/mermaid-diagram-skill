@@ -156,15 +156,14 @@ For each concept, find the visual pattern that mirrors its behavior:
 
 | If the concept... | Use this pattern |
 |-------------------|------------------|
-| Spawns multiple outputs | **Fan-out** (radial arrows from center) |
-| Combines inputs into one | **Convergence** (funnel, arrows merging) |
-| Has hierarchy/nesting | **Tree** (lines + free-floating text) |
-| Is a sequence of steps | **Timeline** (line + dots + free-floating labels) |
-| Loops or improves continuously | **Spiral/Cycle** (arrow returning to start) |
-| Is an abstract state or context | **Cloud** (overlapping ellipses) |
-| Transforms input to output | **Assembly line** (before → process → after) |
-| Compares two things | **Side-by-side** (parallel with contrast) |
-| Separates into phases | **Gap/Break** (visual separation between sections) |
+| Spawns multiple outputs | **Fan-out** (single node, multiple outgoing edges) |
+| Combines inputs into one | **Convergence** (multiple nodes into one target) |
+| Has hierarchy/nesting | **Tree** (mindmap or subgraph nesting) |
+| Is a sequence of steps | **Timeline** (timeline diagram or sequence diagram) |
+| Loops or improves continuously | **Spiral/Cycle** (state self-transitions or back-edges) |
+| Transforms input to output | **Assembly line** (flowchart pipeline) |
+| Compares two things | **Side-by-side** (parallel subgraphs) |
+| Separates into phases | **Gap/Break** (subgraph boundaries) |
 
 ### Step 3: Ensure Variety
 For multi-concept diagrams: **each major concept must use a different visual pattern**. No uniform cards or grids.
@@ -186,77 +185,29 @@ Run the render script and validate the output. See the **Render & Validate** sec
 
 ## Visual Pattern Library
 
-### Fan-Out (One-to-Many)
-Central element with arrows radiating to multiple targets. Use for: sources, PRDs, root causes, central hubs.
-```
-        ○
-       ↗
-  □ → ○
-       ↘
-        ○
-```
-→ Use: Flowchart
+Each pattern below maps a **conceptual shape** to the Mermaid diagram type that best represents it. When a concept matches one of these patterns, use the recommended type.
 
-### Convergence (Many-to-One)
-Multiple inputs merging through arrows to single output. Use for: aggregation, funnels, synthesis.
-```
-  ○ ↘
-  ○ → □
-  ○ ↗
-```
-→ Use: Flowchart
+- **Fan-Out (One-to-Many)** — Central element radiating to multiple targets. Sources, root causes, hubs.
+  → Flowchart with single node having multiple outgoing edges.
 
-### Tree (Hierarchy)
-Parent-child branching with connecting lines and free-floating text. Use for: file systems, org charts, taxonomies.
-```
-  label
-  ├── label
-  │   ├── label
-  │   └── label
-  └── label
-```
-→ Use: Mindmap or Flowchart with subgraphs
+- **Convergence (Many-to-One)** — Multiple inputs merging to single output. Aggregation, funnels, synthesis.
+  → Flowchart with multiple nodes pointing to one target.
 
-### Spiral/Cycle (Continuous Loop)
-Elements in sequence with arrow returning to start. Use for: feedback loops, iterative processes, evolution.
-```
-  □ → □
-  ↑     ↓
-  □ ← □
-```
-→ Use: State Diagram (self-transitions) or Flowchart with back-edge
+- **Tree (Hierarchy)** — Parent-child branching. File systems, org charts, taxonomies.
+  → Mindmap (for simple trees) or Flowchart with subgraphs (for annotated trees).
 
-### Cloud (Abstract State)
-Overlapping ellipses with varied sizes. Use for: context, memory, conversations, mental states.
-→ Use: C4 Diagram or Mindmap
+- **Spiral/Cycle (Continuous Loop)** — Elements in sequence with arrow returning to start. Feedback loops, iterative processes.
+  → State Diagram (self-transitions) or Flowchart with back-edge.
 
-### Assembly Line (Transformation)
-Input → Process Box → Output with clear before/after. Use for: transformations, processing, conversion.
-```
-  ○○○ → [PROCESS] → □□□
-  chaos              order
-```
-→ Use: Flowchart (TD) or Sequence Diagram
+- **Assembly Line (Transformation)** — Input → Process → Output with clear before/after. Transformations, pipelines.
+  → Flowchart (TD) or Sequence Diagram.
 
-### Side-by-Side (Comparison)
-Two parallel structures with visual contrast. Use for: before/after, options, trade-offs.
-→ Use: Flowchart with parallel subgraphs
+- **Side-by-Side (Comparison)** — Two parallel structures with visual contrast. Before/after, options, trade-offs.
+  → Flowchart with parallel subgraphs.
 
-### Gap/Break (Separation)
-Visual whitespace or barrier between sections. Use for: phase changes, context resets, boundaries.
-→ Use: Flowchart subgraphs with visual spacing
+- **Gap/Break (Separation)** — Visual boundary between phases or contexts. Phase changes, system boundaries.
+  → Flowchart subgraphs or C4 container boundaries.
 
-### Lines as Structure (Timeline)
-Use lines as primary structural elements.
-```
-Timeline:           Tree:
-  ●─── Label 1        │
-  │                   ├── item
-  ●─── Label 2        │   ├── sub
-  │                   │   └── sub
-  ●─── Label 3        └── item
-```
-→ Use: Timeline Diagram or Sequence Diagram
 
 ---
 
