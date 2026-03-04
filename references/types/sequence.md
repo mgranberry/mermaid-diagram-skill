@@ -4,6 +4,7 @@
 - Technical interaction flows between distinct components or services.
 - API requests, authentication flows, and message passing between entities.
 - Illustrating the chronological order of messages/interactions.
+- Consider (potential) parallelism.
 
 ## Syntax Reference
 

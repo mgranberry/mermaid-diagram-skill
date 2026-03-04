@@ -9,7 +9,7 @@ Generate `.mmd` files (or fenced ` ```mermaid ` blocks in `.md` files when embed
 
 ## Customization
 
-To customize brand styles, edit `references/mermaid-theme.md` and `references/mermaidConfig.json`. These are the single touchpoints. Do not hardcode colors in diagrams.
+To customize brand styles, edit `references/mermaid-theme.md` and `references/mermaidConfig.json`. These are the single touchpoints. Do not hardcode colors in diagrams unless it is requested specifically and it should be preferred to source values from a per-project configuration if changes are requested.
 
 ---
 
@@ -322,9 +322,10 @@ First run downloads mmdc via npx — may take ~30s.
 4. If layout is poor: restructure — reorder node/edge declarations to change placement, switch `rankDir` (TD ↔ LR), add or remove subgraphs.
 5. Re-render → repeat until the layout communicates the concept cleanly.
 
-**Key difference from previous versions**: You cannot pixel-position elements. All layout improvements come from:
+**You cannot pixel-position elements** All layout improvements come from:
 - **Reordering declarations** — the order nodes and edges appear in source directly influences Mermaid's placement algorithm.
 - **Changing `rankDir`** — `TD`, `LR`, `BT`, `RL` — try the orthogonal direction when crossings persist.
+- Consider whether hidden lines would be an appropriate fix for the issue.
 - **Using subgraphs** — constrain placement of related nodes.
 - NOT coordinate adjustments.
 
@@ -369,3 +370,6 @@ First run downloads mmdc via npx — may take ~30s.
 19. No overlapping labels or crossed text?
 20. Eye flows naturally through the diagram?
 21. Line crossings minimized (tried reordering + rankDir if needed)?
+
+**Cleanup**
+Once a user is happy with the output, remove any temporary output like pngs or mmd files.
