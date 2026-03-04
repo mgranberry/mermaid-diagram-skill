@@ -1,0 +1,5 @@
+- Rewrote README.md to reflect Mermaid-specific workflow and file structure.
+- Simplified .gitignore to only ignore rendered images and node_modules, removing Python/uv artifacts.
+- Reframed core differentiators to be Mermaid-appropriate (e.g., syntax errors instead of layout overlaps).
+- Documented ephemeral usage of mermaid-cli via npx to minimize local setup requirements.
+- Documented new 9-file split of diagram type references.

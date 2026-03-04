@@ -1,0 +1,1 @@
+- Decisions: Decided to keep 'Differentiators' section as it aligns with the core philosophy of 'arguing not displaying' which remains true for Mermaid.

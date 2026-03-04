@@ -1,19 +1,15 @@
 ---
-name: excalidraw-diagram
-description: Create Excalidraw diagram JSON files that make visual arguments. Use when the user wants to visualize workflows, architectures, or concepts.
+name: mermaid-diagram
+description: Create Mermaid diagram files that make visual arguments. Use when the user wants to visualize workflows, architectures, or concepts.
 ---
 
-# Excalidraw Diagram Creator
+# Mermaid Diagram Creator
 
-Generate `.excalidraw` JSON files that **argue visually**, not just display information.
-
-**Setup:** If the user asks you to set up this skill (renderer, dependencies, etc.), see `README.md` for instructions.
+Generate `.mmd` files (or fenced ` ```mermaid ` blocks in `.md` files when embedding in docs). Reference `references/mermaid-theme.md` as the single style customization source.
 
 ## Customization
 
-**All colors and brand-specific styles live in one file:** `references/color-palette.md`. Read it before generating any diagram and use it as the single source of truth for all color choices — shape fills, strokes, text colors, evidence artifact backgrounds, everything.
-
-To make this skill produce diagrams in your own brand style, edit `color-palette.md`. Everything else in this file is universal design methodology and Excalidraw best practices.
+To customize brand styles, edit `references/mermaid-theme.md` and `references/mermaidConfig.json`. These are the single touchpoints. Do not hardcode colors in diagrams.
 
 ---
 
@@ -71,26 +67,12 @@ Good: "AG-UI streams events (RUN_STARTED, STATE_DELTA, A2UI_UPDATE)" → "Copilo
 
 Evidence artifacts are concrete examples that prove your diagram is accurate and help viewers learn. Include them in technical diagrams.
 
-**Types of evidence artifacts** (choose what's relevant to your diagram):
-
-| Artifact Type | When to Use | How to Render |
-|---------------|-------------|---------------|
-| **Code snippets** | APIs, integrations, implementation details | Dark rectangle + syntax-colored text (see color palette for evidence artifact colors) |
-| **Data/JSON examples** | Data formats, schemas, payloads | Dark rectangle + colored text (see color palette) |
-| **Event/step sequences** | Protocols, workflows, lifecycles | Timeline pattern (line + dots + labels) |
-| **UI mockups** | Showing actual output/results | Nested rectangles mimicking real UI |
-| **Real input content** | Showing what goes IN to a system | Rectangle with sample content visible |
-| **API/method names** | Real function calls, endpoints | Use actual names from docs, not placeholders |
-
-**Example**: For a diagram about a streaming protocol, you might show:
-- The actual event names from the spec (not just "Event 1", "Event 2")
-- A code snippet showing how to connect
-- What the streamed data actually looks like
-
-**Example**: For a diagram about a data transformation pipeline:
-- Show sample input data (actual format, not "Input")
-- Show sample output data (actual format, not "Output")
-- Show intermediate states if relevant
+**Mechanics for Mermaid**:
+- **Notes in sequence diagrams**: Use `Note over A,B: content` to show data payloads, API responses, or message formats.
+- **Node labels with line breaks**: Use `<br/>` in node labels to show multi-line content. Example: `A["POST /api/v1/run<br/>body: {runId, input}"]`
+- **Subgraph titles**: Use `subgraph "Section Name"` to add contextual labels to regions.
+- **Companion .md files**: For code-heavy evidence like large JSON payloads or code snippets, create a companion `.md` file alongside the `.mmd` with fenced code blocks.
+- **Acknowledge limitation**: Mermaid cannot embed arbitrary code blocks inside nodes. Keep node text concise and offload verbosity to companion files or Notes.
 
 The key principle: **show what things actually look like**, not just what they're called.
 
@@ -125,7 +107,6 @@ Evidence artifacts, code snippets, and concrete examples within each section. Th
 | Card grid layout | Visual structure matches conceptual structure |
 | Icons decorating text | Shapes that ARE the meaning |
 | Same container for everything | Distinct visual vocabulary per concept |
-| Everything in a box | Free-floating text with selective containers |
 
 ### Simple vs Comprehensive (Know Which You Need)
 
@@ -142,25 +123,7 @@ Evidence artifacts, code snippets, and concrete examples within each section. Th
 
 ---
 
-## Container vs. Free-Floating Text
-
-**Not every piece of text needs a shape around it.** Default to free-floating text. Add containers only when they serve a purpose.
-
-| Use a Container When... | Use Free-Floating Text When... |
-|------------------------|-------------------------------|
-| It's the focal point of a section | It's a label or description |
-| It needs visual grouping with other elements | It's supporting detail or metadata |
-| Arrows need to connect to it | It describes something nearby |
-| The shape itself carries meaning (decision diamond, etc.) | Typography alone creates sufficient hierarchy |
-| It represents a distinct "thing" in the system | It's a section title, subtitle, or annotation |
-
-**Typography as hierarchy**: Use font size, weight, and color to create visual hierarchy without boxes. A 28px title doesn't need a rectangle around it.
-
-**The container test**: For each boxed element, ask "Would this work as free-floating text?" If yes, remove the container.
-
----
-
-## Design Process (Do This BEFORE Generating JSON)
+## Design Process
 
 ### Step 0: Assess Depth Required
 Before anything else, determine if this needs to be:
@@ -195,59 +158,17 @@ For each concept, find the visual pattern that mirrors its behavior:
 For multi-concept diagrams: **each major concept must use a different visual pattern**. No uniform cards or grids.
 
 ### Step 4: Sketch the Flow
-Before JSON, mentally trace how the eye moves through the diagram. There should be a clear visual story.
+Before writing syntax, mentally trace how the eye moves through the diagram. There should be a clear visual story.
 
-### Step 5: Generate JSON
-Only now create the Excalidraw elements. **See below for how to handle large diagrams.**
+### Step 5: Generate Mermaid Syntax
+1. Choose diagram type: consult `references/diagram-type-guide.md` decision matrix.
+2. Load the per-type reference: open `references/types/<chosen-type>.md` for full syntax.
+3. Write the syntax — start with a `%%` comment block naming the diagram type and describing each section.
+4. Use meaningful node IDs (not `A`, `B`, `C` — use `authService`, `dbWrite`, `userInput`).
+5. Add `classDef` for semantic styling (trigger, success, error, ai, decision) — pull from `references/mermaid-theme.md`.
 
-### Step 6: Render & Validate (MANDATORY)
-After generating the JSON, you MUST run the render-view-fix loop until the diagram looks right. This is not optional — see the **Render & Validate** section below for the full process.
-
----
-
-## Large / Comprehensive Diagram Strategy
-
-**For comprehensive or technical diagrams, you MUST build the JSON one section at a time.** Do NOT attempt to generate the entire file in a single pass. This is a hard constraint — Claude Code has a ~32,000 token output limit per response, and a comprehensive diagram easily exceeds that in one shot. Even if it didn't, generating everything at once leads to worse quality. Section-by-section is better in every way.
-
-### The Section-by-Section Workflow
-
-**Phase 1: Build each section**
-
-1. **Create the base file** with the JSON wrapper (`type`, `version`, `appState`, `files`) and the first section of elements.
-2. **Add one section per edit.** Each section gets its own dedicated pass — take your time with it. Think carefully about the layout, spacing, and how this section connects to what's already there.
-3. **Use descriptive string IDs** (e.g., `"trigger_rect"`, `"arrow_fan_left"`) so cross-section references are readable.
-4. **Namespace seeds by section** (e.g., section 1 uses 100xxx, section 2 uses 200xxx) to avoid collisions.
-5. **Update cross-section bindings** as you go. When a new section's element needs to bind to an element from a previous section (e.g., an arrow connecting sections), edit the earlier element's `boundElements` array at the same time.
-
-**Phase 2: Review the whole**
-
-After all sections are in place, read through the complete JSON and check:
-- Are cross-section arrows bound correctly on both ends?
-- Is the overall spacing balanced, or are some sections cramped while others have too much whitespace?
-- Do IDs and bindings all reference elements that actually exist?
-
-Fix any alignment or binding issues before rendering.
-
-**Phase 3: Render & validate**
-
-Now run the render-view-fix loop from the Render & Validate section. This is where you'll catch visual issues that aren't obvious from JSON — overlaps, clipping, imbalanced composition.
-
-### Section Boundaries
-
-Plan your sections around natural visual groupings from the diagram plan. A typical large diagram might split into:
-
-- **Section 1**: Entry point / trigger
-- **Section 2**: First decision or routing
-- **Section 3**: Main content (hero section — may be the largest single section)
-- **Section 4-N**: Remaining phases, outputs, etc.
-
-Each section should be independently understandable: its elements, internal arrows, and any cross-references to adjacent sections.
-
-### What NOT to Do
-
-- **Don't generate the entire diagram in one response.** You will hit the output token limit and produce truncated, broken JSON. Even if the diagram is small enough to fit, splitting into sections produces better results.
-- **Don't use a coding agent** to generate the JSON. The agent won't have sufficient context about the skill's rules, and the coordination overhead negates any benefit.
-- **Don't write a Python generator script.** The templating and coordinate math seem helpful but introduce a layer of indirection that makes debugging harder. Hand-crafted JSON with descriptive IDs is more maintainable.
+### Step 6: Render & Validate
+Run the render script and validate the output. See the **Render & Validate** section below.
 
 ---
 
@@ -262,6 +183,7 @@ Central element with arrows radiating to multiple targets. Use for: sources, PRD
        ↘
         ○
 ```
+→ Use: Flowchart
 
 ### Convergence (Many-to-One)
 Multiple inputs merging through arrows to single output. Use for: aggregation, funnels, synthesis.
@@ -270,9 +192,10 @@ Multiple inputs merging through arrows to single output. Use for: aggregation, f
   ○ → □
   ○ ↗
 ```
+→ Use: Flowchart
 
 ### Tree (Hierarchy)
-Parent-child branching with connecting lines and free-floating text (no boxes needed). Use for: file systems, org charts, taxonomies.
+Parent-child branching with connecting lines and free-floating text. Use for: file systems, org charts, taxonomies.
 ```
   label
   ├── label
@@ -280,7 +203,7 @@ Parent-child branching with connecting lines and free-floating text (no boxes ne
   │   └── label
   └── label
 ```
-Use `line` elements for the trunk and branches, free-floating text for labels.
+→ Use: Mindmap or Flowchart with subgraphs
 
 ### Spiral/Cycle (Continuous Loop)
 Elements in sequence with arrow returning to start. Use for: feedback loops, iterative processes, evolution.
@@ -289,9 +212,11 @@ Elements in sequence with arrow returning to start. Use for: feedback loops, ite
   ↑     ↓
   □ ← □
 ```
+→ Use: State Diagram (self-transitions) or Flowchart with back-edge
 
 ### Cloud (Abstract State)
 Overlapping ellipses with varied sizes. Use for: context, memory, conversations, mental states.
+→ Use: C4 Diagram or Mindmap
 
 ### Assembly Line (Transformation)
 Input → Process Box → Output with clear before/after. Use for: transformations, processing, conversion.
@@ -299,20 +224,18 @@ Input → Process Box → Output with clear before/after. Use for: transformatio
   ○○○ → [PROCESS] → □□□
   chaos              order
 ```
+→ Use: Flowchart (TD) or Sequence Diagram
 
 ### Side-by-Side (Comparison)
 Two parallel structures with visual contrast. Use for: before/after, options, trade-offs.
+→ Use: Flowchart with parallel subgraphs
 
 ### Gap/Break (Separation)
 Visual whitespace or barrier between sections. Use for: phase changes, context resets, boundaries.
+→ Use: Flowchart subgraphs with visual spacing
 
-### Lines as Structure
-Use lines (type: `line`, not arrows) as primary structural elements instead of boxes:
-- **Timelines**: Vertical or horizontal line with small dots (10-20px ellipses) at intervals, free-floating labels beside each dot
-- **Tree structures**: Vertical trunk line + horizontal branch lines, with free-floating text labels (no boxes needed)
-- **Dividers**: Thin dashed lines to separate sections
-- **Flow spines**: A central line that elements relate to, rather than connecting boxes
-
+### Lines as Structure (Timeline)
+Use lines as primary structural elements.
 ```
 Timeline:           Tree:
   ●─── Label 1        │
@@ -321,232 +244,128 @@ Timeline:           Tree:
   │                   │   └── sub
   ●─── Label 3        └── item
 ```
-
-Lines + free-floating text often creates a cleaner result than boxes + contained text.
-
----
-
-## Shape Meaning
-
-Choose shape based on what it represents—or use no shape at all:
-
-| Concept Type | Shape | Why |
-|--------------|-------|-----|
-| Labels, descriptions, details | **none** (free-floating text) | Typography creates hierarchy |
-| Section titles, annotations | **none** (free-floating text) | Font size/weight is enough |
-| Markers on a timeline | small `ellipse` (10-20px) | Visual anchor, not container |
-| Start, trigger, input | `ellipse` | Soft, origin-like |
-| End, output, result | `ellipse` | Completion, destination |
-| Decision, condition | `diamond` | Classic decision symbol |
-| Process, action, step | `rectangle` | Contained action |
-| Abstract state, context | overlapping `ellipse` | Fuzzy, cloud-like |
-| Hierarchy node | lines + text (no boxes) | Structure through lines |
-
-**Rule**: Default to no container. Add shapes only when they carry meaning. Aim for <30% of text elements to be inside containers.
+→ Use: Timeline Diagram or Sequence Diagram
 
 ---
 
-## Color as Meaning
+## Node Shape Reference
 
-Colors encode information, not decoration. Every color choice should come from `references/color-palette.md` — the semantic shape colors, text hierarchy colors, and evidence artifact colors are all defined there.
-
-**Key principles:**
-- Each semantic purpose (start, end, decision, AI, error, etc.) has a specific fill/stroke pair
-- Free-floating text uses color for hierarchy (titles, subtitles, details — each at a different level)
-- Evidence artifacts (code snippets, JSON examples) use their own dark background + colored text scheme
-- Always pair a darker stroke with a lighter fill for contrast
-
-**Do not invent new colors.** If a concept doesn't fit an existing semantic category, use Primary/Neutral or Secondary.
-
----
-
-## Modern Aesthetics
-
-For clean, professional diagrams:
-
-### Roughness
-- `roughness: 0` — Clean, crisp edges. Use for modern/technical diagrams.
-- `roughness: 1` — Hand-drawn, organic feel. Use for brainstorming/informal diagrams.
-
-**Default to 0** for most professional use cases.
-
-### Stroke Width
-- `strokeWidth: 1` — Thin, elegant. Good for lines, dividers, subtle connections.
-- `strokeWidth: 2` — Standard. Good for shapes and primary arrows.
-- `strokeWidth: 3` — Bold. Use sparingly for emphasis (main flow line, key connections).
-
-### Opacity
-**Always use `opacity: 100` for all elements.** Use color, size, and stroke width to create hierarchy instead of transparency.
-
-### Small Markers Instead of Shapes
-Instead of full shapes, use small dots (10-20px ellipses) as:
-- Timeline markers
-- Bullet points
-- Connection nodes
-- Visual anchors for free-floating text
+| Syntax | Shape | Use For |
+|--------|-------|---------|
+| `[text]` | Rectangle | Process, action, component, step |
+| `(text)` | Rounded rectangle | Softer process, intermediate step |
+| `((text))` | Circle | Start/end point, event, trigger |
+| `{text}` | Diamond (rhombus) | Decision, condition, branch |
+| `([text])` | Stadium/pill | External system, service, API |
+| `[[text]]` | Subroutine | Reusable component, function call |
+| `>text]` | Asymmetric | Note, annotation, flag |
+| `{{text}}` | Hexagon | Preparation step, configuration |
+| `[/text/]` | Parallelogram | Input/Output |
+| `[\text\]` | Alt parallelogram | Output (reversed slant) |
+| `[/text\]` | Trapezoid | Manual operation |
 
 ---
 
-## Layout Principles
+## Semantic Styling with classDef
 
-### Hierarchy Through Scale
-- **Hero**: 300×150 - visual anchor, most important
-- **Primary**: 180×90
-- **Secondary**: 120×60
-- **Small**: 60×40
+Key principle: use `classDef` for semantic meaning, not decoration.
 
-### Whitespace = Importance
-The most important element has the most empty space around it (200px+).
+Reference `references/mermaid-theme.md` for the full recipe table.
 
-### Flow Direction
-Guide the eye: typically left→right or top→bottom for sequences, radial for hub-and-spoke.
+Example:
+```mermaid
+graph TD
+    classDef trigger fill:#fed7aa,stroke:#c2410c,color:#374151
+    classDef success fill:#a7f3d0,stroke:#047857,color:#374151
+    classDef error fill:#fecaca,stroke:#b91c1c,color:#374151
 
-### Connections Required
-Position alone doesn't show relationships. If A relates to B, there must be an arrow.
-
----
-
-## Text Rules
-
-**CRITICAL**: The JSON `text` property contains ONLY readable words.
-
-```json
-{
-  "id": "myElement1",
-  "text": "Start",
-  "originalText": "Start"
-}
+    A((Start)):::trigger --> B[Process]
+    B --> C{OK?}
+    C -->|Yes| D([Done]):::success
+    C -->|No| E[Error State]:::error
 ```
 
-Settings: `fontSize: 16`, `fontFamily: 3`, `textAlign: "center"`, `verticalAlign: "middle"`
+---
+
+## Output Format
+
+- **Default**: Create a `.mmd` file.
+- **If embedding**: When the user says "embed", "add to docs", "in README", or the target is a `.md` file → output a fenced ` ```mermaid ` block instead.
+- **When in doubt**: `.mmd` file.
 
 ---
 
-## JSON Structure
+## Large Diagram Strategy
 
-```json
-{
-  "type": "excalidraw",
-  "version": 2,
-  "source": "https://excalidraw.com",
-  "elements": [...],
-  "appState": {
-    "viewBackgroundColor": "#ffffff",
-    "gridSize": 20
-  },
-  "files": {}
-}
-```
-
-## Element Templates
-
-See `references/element-templates.md` for copy-paste JSON templates for each element type (text, line, dot, rectangle, arrow). Pull colors from `references/color-palette.md` based on each element's semantic purpose.
+Mermaid syntax is compact. Focus on readability:
+- Use meaningful node IDs (`authService`, not `A`).
+- Add `%%` comments for section breaks within the diagram.
+- Keep nodes to ~20 max before splitting into multiple diagrams.
+- For complex systems: one `.mmd` per layer (Context → Container → Component).
+- Break dense subgraphs into separate files with cross-references in prose.
 
 ---
 
 ## Render & Validate (MANDATORY)
 
-You cannot judge a diagram from JSON alone. After generating or editing the Excalidraw JSON, you MUST render it to PNG, view the image, and fix what you see — in a loop until it's right. This is a core part of the workflow, not a final check.
-
-### How to Render
-
+**How to render:**
 ```bash
-cd .claude/skills/excalidraw-diagram/references && uv run python render_excalidraw.py <path-to-file.excalidraw>
+bash .claude/skills/mermaid-diagram-skill/references/render_mermaid.sh <path.mmd> [output.png]
 ```
+First run downloads mmdc via npx — may take ~30s.
 
-This outputs a PNG next to the `.excalidraw` file. Then use the **Read tool** on the PNG to actually view it.
+**The loop:**
+1. Write Mermaid syntax.
+2. Run render script.
+3a. If mmdc fails with a syntax error: read the error message, fix the syntax (usually: unquoted special chars, wrong keyword, missing `end`).
+3b. If mmdc succeeds: view the PNG, assess the layout.
+4. If layout is poor: restructure — reorder node/edge declarations to change placement, switch `rankDir` (TD ↔ LR), add or remove subgraphs.
+5. Re-render → repeat until the layout communicates the concept cleanly.
 
-### The Loop
+**Key difference from previous versions**: You cannot pixel-position elements. All layout improvements come from:
+- **Reordering declarations** — the order nodes and edges appear in source directly influences Mermaid's placement algorithm.
+- **Changing `rankDir`** — `TD`, `LR`, `BT`, `RL` — try the orthogonal direction when crossings persist.
+- **Using subgraphs** — constrain placement of related nodes.
+- NOT coordinate adjustments.
 
-After generating the initial JSON, run this cycle:
+**Line crossing reduction**:
+- Declare nodes in reading order (top→bottom, left→right).
+- Minimize back-edges — isolate cycles in State diagrams or contained subgraphs.
+- Declare related nodes together in source.
+- Reduce fan-out: split any node with 5+ outgoing edges into a dispatcher → handlers.
+- See `references/diagram-type-guide.md` Part 3 for the full layout optimization guide.
 
-**1. Render & View** — Run the render script, then Read the PNG.
-
-**2. Audit against your original vision** — Before looking for bugs, compare the rendered result to what you designed in Steps 1-4. Ask:
-- Does the visual structure match the conceptual structure you planned?
-- Does each section use the pattern you intended (fan-out, convergence, timeline, etc.)?
-- Does the eye flow through the diagram in the order you designed?
-- Is the visual hierarchy correct — hero elements dominant, supporting elements smaller?
-- For technical diagrams: are the evidence artifacts (code snippets, data examples) readable and properly placed?
-
-**3. Check for visual defects:**
-- Text clipped by or overflowing its container
-- Text or shapes overlapping other elements
-- Arrows crossing through elements instead of routing around them
-- Arrows landing on the wrong element or pointing into empty space
-- Labels floating ambiguously (not clearly anchored to what they describe)
-- Uneven spacing between elements that should be evenly spaced
-- Sections with too much whitespace next to sections that are too cramped
-- Text too small to read at the rendered size
-- Overall composition feels lopsided or unbalanced
-
-**4. Fix** — Edit the JSON to address everything you found. Common fixes:
-- Widen containers when text is clipped
-- Adjust `x`/`y` coordinates to fix spacing and alignment
-- Add intermediate waypoints to arrow `points` arrays to route around elements
-- Reposition labels closer to the element they describe
-- Resize elements to rebalance visual weight across sections
-
-**5. Re-render & re-view** — Run the render script again and Read the new PNG.
-
-**6. Repeat** — Keep cycling until the diagram passes both the vision check (Step 2) and the defect check (Step 3). Typically takes 2-4 iterations. Don't stop after one pass just because there are no critical bugs — if the composition could be better, improve it.
-
-### When to Stop
-
-The loop is done when:
-- The rendered diagram matches the conceptual design from your planning steps
-- No text is clipped, overlapping, or unreadable
-- Arrows route cleanly and connect to the right elements
-- Spacing is consistent and the composition is balanced
-- You'd be comfortable showing it to someone without caveats
-
-### First-Time Setup
-If the render script hasn't been set up yet:
-```bash
-cd .claude/skills/excalidraw-diagram/references
-uv sync
-uv run playwright install chromium
-```
+**When to stop**: syntax valid, layout communicates the concept, line crossings minimized, no overlapping labels, eye flows correctly through the diagram.
 
 ---
 
 ## Quality Checklist
 
-### Depth & Evidence (Check First for Technical Diagrams)
-1. **Research done**: Did you look up actual specs, formats, event names?
-2. **Evidence artifacts**: Are there code snippets, JSON examples, or real data?
-3. **Multi-zoom**: Does it have summary flow + section boundaries + detail?
-4. **Concrete over abstract**: Real content shown, not just labeled boxes?
-5. **Educational value**: Could someone learn something concrete from this?
+**Concept & Depth (check first for technical diagrams):**
+1. Research done: looked up actual specs, formats, event names?
+2. Evidence artifacts: Notes, multi-line node labels, companion `.md` for large payloads?
+3. Multi-zoom: summary flow + section subgraphs + detail labels?
+4. Concrete over abstract: real API names, real event names, not generic "Process"?
+5. Educational value: could someone learn from this diagram?
 
-### Conceptual
-6. **Isomorphism**: Does each visual structure mirror its concept's behavior?
-7. **Argument**: Does the diagram SHOW something text alone couldn't?
-8. **Variety**: Does each major concept use a different visual pattern?
-9. **No uniform containers**: Avoided card grids and equal boxes?
+**Diagram Design:**
+6. Isomorphism Test: does visual structure mirror the concept's behavior?
+7. Argument: does the diagram SHOW something text alone couldn't?
+8. Variety: does each major concept use a different visual pattern or node shape?
+9. Diagram type chosen intentionally (matches the concept's pattern from decision matrix)?
+10. Node IDs are readable, not single letters?
 
-### Container Discipline
-10. **Minimal containers**: Could any boxed element work as free-floating text instead?
-11. **Lines as structure**: Are tree/timeline patterns using lines + text rather than boxes?
-12. **Typography hierarchy**: Are font size and color creating visual hierarchy (reducing need for boxes)?
+**Mermaid-Specific:**
+11. `classDef` used for semantic styling (trigger, success, error, ai, decision)?
+12. Output format correct (`.mmd` vs fenced block)?
+13. No excluded diagram types used (no Pie, Gantt, Git Graph, XY Chart)?
+14. Node/edge declaration order follows reading direction (minimize line crossings)?
+15. No single node has 5+ edges without a dispatcher split?
+16. Back-edges isolated (cycles handled in State diagram or contained subgraph)?
 
-### Structural
-13. **Connections**: Every relationship has an arrow or line
-14. **Flow**: Clear visual path for the eye to follow
-15. **Hierarchy**: Important elements are larger/more isolated
-
-### Technical
-16. **Text clean**: `text` contains only readable words
-17. **Font**: `fontFamily: 3`
-18. **Roughness**: `roughness: 0` for clean/modern (unless hand-drawn style requested)
-19. **Opacity**: `opacity: 100` for all elements (no transparency)
-20. **Container ratio**: <30% of text elements should be inside containers
-
-### Visual Validation (Render Required)
-21. **Rendered to PNG**: Diagram has been rendered and visually inspected
-22. **No text overflow**: All text fits within its container
-23. **No overlapping elements**: Shapes and text don't overlap unintentionally
-24. **Even spacing**: Similar elements have consistent spacing
-25. **Arrows land correctly**: Arrows connect to intended elements without crossing others
-26. **Readable at export size**: Text is legible in the rendered PNG
-27. **Balanced composition**: No large empty voids or overcrowded regions
+**Render Validation (mandatory):**
+17. Syntax validated: mmdc runs without error?
+18. PNG viewed: layout visually inspected?
+19. No overlapping labels or crossed text?
+20. Eye flows naturally through the diagram?
+21. Line crossings minimized (tried reordering + rankDir if needed)?
