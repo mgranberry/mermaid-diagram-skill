@@ -9,10 +9,10 @@
 
 ### Basic Example
 ```mermaid
-graph TD
+flowchart TD
     Start[Start Process] --> Check{Is Valid?}
     Check -->|Yes| Process[Run Process]
-    Check -->|No| End[End]
+    Check -->|No| End["End"]
     Process --> End
 ```
 
@@ -41,7 +41,7 @@ flowchart LR
 ### Edge-Case Examples
 #### Dense Multi-step Process
 ```mermaid
-graph TD
+flowchart TD
     A[Start] --> B{Decision Point}
     B -->|Yes| C[Step One]
     B -->|No| D[Alternate Step]
@@ -95,6 +95,23 @@ flowchart LR
     - `[/Parallelogram/]`
     - `[\Backslashed\]`
     - `[/Trapezoid\]`
+
+### Node Shape Quick Reference
+
+| Syntax | Shape | Use For |
+|--------|-------|---------|
+| `[text]` | Rectangle | Process, action, component, step |
+| `(text)` | Rounded rectangle | Softer process, intermediate step |
+| `((text))` | Circle | Start/end point, event, trigger |
+| `{text}` | Diamond (rhombus) | Decision, condition, branch |
+| `([text])` | Stadium/pill | External system, service, API |
+| `[[text]]` | Subroutine | Reusable component, function call |
+| `>text]` | Asymmetric | Note, annotation, flag |
+| `{{text}}` | Hexagon | Preparation step, configuration |
+| `[/text/]` | Parallelogram | Input/Output |
+| `[\text\]` | Alt parallelogram | Output (reversed slant) |
+| `[/text\]` | Trapezoid | Manual operation |
+
 - **Edges**:
     - `-->` Arrow
     - `---` Line

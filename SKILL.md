@@ -5,11 +5,23 @@ description: Create Mermaid diagram files that make visual arguments. Use when t
 
 # Mermaid Diagram Creator
 
-Generate `.mmd` files (or fenced ` ```mermaid ` blocks in `.md` files when embedding in docs). Reference `references/mermaid-theme.md` as the single style customization source.
+Generate `.mmd` files (or fenced ` ```mermaid ` blocks in `.md` files when embedding in docs).
+
+## Reference Files (load as needed)
+
+| File | Load when... |
+|------|-------------|
+| `references/types/<type>.md` | After choosing diagram type (Step 5). Full syntax, examples, layout tips, line-break rules, and pitfalls for that type. |
+| `references/syntax-pitfalls.md` | Render fails or you need to debug syntax. Covers quoting rules, `<br>` compatibility matrix (Section 9), reserved words, and common errors. |
+| `references/mermaid-theme.md` | Applying `classDef` semantic styling or customizing colors. Contains the recipe table (trigger, success, error, ai, decision) and per-diagram-type support notes. |
+| `references/mermaidConfig.json` | Changing global Mermaid renderer settings (theme variables, font size, etc.). |
+| `references/render_mermaid.sh` | The render script. Invoked via bash, not read. See Render & Validate below. |
+| `references/diagram-type-guide.md` | Layout optimization deep-dive (Part 3: line-crossing reduction strategies). Consult when layout is poor after initial render. |
+| `references/examples/` | Validated `.mmd` examples (`architecture.mmd`, `sequence-api.mmd`). Review for inspiration or to verify your syntax against known-good patterns. |
 
 ## Customization
 
-To customize brand styles, edit `references/mermaid-theme.md` and `references/mermaidConfig.json`. These are the single touchpoints. Do not hardcode colors in diagrams unless it is requested specifically and it should be preferred to source values from a per-project configuration if changes are requested.
+To customize brand styles, edit `references/mermaid-theme.md` and `references/mermaidConfig.json`. These are the single touchpoints. Do not hardcode colors in diagrams unless specifically requested; prefer sourcing values from a per-project configuration.
 
 ---
 
@@ -79,12 +91,11 @@ Good: "AG-UI streams events (RUN_STARTED, STATE_DELTA, A2UI_UPDATE)" → "Copilo
 
 Evidence artifacts are concrete examples that prove your diagram is accurate and help viewers learn. Include them in technical diagrams.
 
-**Mechanics for Mermaid**:
-- **Notes in sequence diagrams**: Use `Note over A,B: content` to show data payloads, API responses, or message formats.
-- **Node labels with line breaks**: Use `<br>` in node labels to show multi-line content. Example: `A["POST /api/v1/run<br>body: {runId, input}"]`. Note: `<br>` works in most diagram types but **not** in class diagram members or sankey labels — see `references/syntax-pitfalls.md` Section 9 for the full compatibility matrix. Always prefer `<br>` over `<br/>` (the self-closing form fails in some contexts). Never use `\n` — it renders as literal text.
-- **Subgraph titles**: Use `subgraph "Section Name"` to add contextual labels to regions.
-- **Companion .md files**: For code-heavy evidence like large JSON payloads or code snippets, create a companion `.md` file alongside the `.mmd` with fenced code blocks.
-- **Acknowledge limitation**: Mermaid cannot embed arbitrary code blocks inside nodes. Keep node text concise and offload verbosity to companion files or Notes.
+**Techniques** (syntax details are in each type-specific reference):
+- **Notes** (sequence diagrams) for data payloads and message formats.
+- **Multi-line node labels** using `<br>` for concise inline evidence.
+- **Subgraph titles** to label regions.
+- **Companion .md files** for large payloads or code snippets that won't fit in node text.
 
 The key principle: **show what things actually look like**, not just what they're called.
 
@@ -184,22 +195,22 @@ Run the render script and validate the output. See the **Render & Validate** sec
 
 ## Diagram Type Decision Matrix
 
-Quick lookup: match the visual pattern you need to the best diagram type.
+Quick lookup: match the visual pattern you need to the best diagram type, then open its reference file.
 
-| Visual Pattern | Best Diagram Type |
-|----------------|-------------------|
-| Fan-out (one-to-many) | Flowchart |
-| Convergence (many-to-one) | Flowchart |
-| Sequence of steps / interactions | Sequence Diagram |
-| Hierarchy / tree | Mindmap |
-| State machine / lifecycle | State Diagram |
-| Object structure / relationships | Class Diagram |
-| System architecture / context | C4 Diagram |
-| Timeline / ordered events | Timeline Diagram |
-| Spiral/Cycle (loop) | State Diagram (self-transitions) or Flowchart with back-edge |
-| Side-by-side comparison | Parallel subgraphs in Flowchart |
-| Data schema / entity relationships | ER Diagram |
-| Flow volumes / resource allocation | Sankey Diagram |
+| Visual Pattern | Best Diagram Type | Reference |
+|----------------|-------------------|-----------|
+| Fan-out (one-to-many) | Flowchart | `references/types/flowchart.md` |
+| Convergence (many-to-one) | Flowchart | `references/types/flowchart.md` |
+| Sequence of steps / interactions | Sequence Diagram | `references/types/sequence.md` |
+| Hierarchy / tree | Mindmap | `references/types/mindmap.md` |
+| State machine / lifecycle | State Diagram | `references/types/state.md` |
+| Object structure / relationships | Class Diagram | `references/types/class.md` |
+| System architecture / context | C4 Diagram | `references/types/c4.md` |
+| Timeline / ordered events | Timeline Diagram | `references/types/timeline.md` |
+| Spiral/Cycle (loop) | State Diagram or Flowchart | `references/types/state.md` `references/types/flowchart.md` |
+| Side-by-side comparison | Flowchart (parallel subgraphs) | `references/types/flowchart.md` |
+| Data schema / entity relationships | ER Diagram | `references/types/er-diagram.md` |
+| Flow volumes / resource allocation | Sankey Diagram | `references/types/sankey.md` |
 
 ### Excluded Diagram Types
 
@@ -215,70 +226,9 @@ Do **not** use these types — they lack structural argument capability or are t
 
 ---
 
-## Visual Pattern Library
+## Semantic Styling
 
-Each pattern below maps a **conceptual shape** to the Mermaid diagram type that best represents it. When a concept matches one of these patterns, use the recommended type.
-
-- **Fan-Out (One-to-Many)** — Central element radiating to multiple targets. Sources, root causes, hubs.
-  → Flowchart with single node having multiple outgoing edges.
-
-- **Convergence (Many-to-One)** — Multiple inputs merging to single output. Aggregation, funnels, synthesis.
-  → Flowchart with multiple nodes pointing to one target.
-
-- **Tree (Hierarchy)** — Parent-child branching. File systems, org charts, taxonomies.
-  → Mindmap (for simple trees) or Flowchart with subgraphs (for annotated trees).
-
-- **Spiral/Cycle (Continuous Loop)** — Elements in sequence with arrow returning to start. Feedback loops, iterative processes.
-  → State Diagram (self-transitions) or Flowchart with back-edge.
-
-- **Assembly Line (Transformation)** — Input → Process → Output with clear before/after. Transformations, pipelines.
-  → Flowchart (TD) or Sequence Diagram.
-
-- **Side-by-Side (Comparison)** — Two parallel structures with visual contrast. Before/after, options, trade-offs.
-  → Flowchart with parallel subgraphs.
-
-- **Gap/Break (Separation)** — Visual boundary between phases or contexts. Phase changes, system boundaries.
-  → Flowchart subgraphs or C4 container boundaries.
-
-
----
-
-## Node Shape Reference
-
-| Syntax | Shape | Use For |
-|--------|-------|---------|
-| `[text]` | Rectangle | Process, action, component, step |
-| `(text)` | Rounded rectangle | Softer process, intermediate step |
-| `((text))` | Circle | Start/end point, event, trigger |
-| `{text}` | Diamond (rhombus) | Decision, condition, branch |
-| `([text])` | Stadium/pill | External system, service, API |
-| `[[text]]` | Subroutine | Reusable component, function call |
-| `>text]` | Asymmetric | Note, annotation, flag |
-| `{{text}}` | Hexagon | Preparation step, configuration |
-| `[/text/]` | Parallelogram | Input/Output |
-| `[\text\]` | Alt parallelogram | Output (reversed slant) |
-| `[/text\]` | Trapezoid | Manual operation |
-
----
-
-## Semantic Styling with classDef
-
-Key principle: use `classDef` for semantic meaning, not decoration.
-
-Reference `references/mermaid-theme.md` for the full recipe table.
-
-Example:
-```mermaid
-graph TD
-    classDef trigger fill:#fed7aa,stroke:#c2410c,color:#374151
-    classDef success fill:#a7f3d0,stroke:#047857,color:#374151
-    classDef error fill:#fecaca,stroke:#b91c1c,color:#374151
-
-    A((Start)):::trigger --> B[Process]
-    B --> C{OK?}
-    C -->|Yes| D([Done]):::success
-    C -->|No| E[Error State]:::error
-```
+Use `classDef` for **semantic meaning**, not decoration. See `references/mermaid-theme.md` for the full recipe table and per-diagram-type support notes.
 
 ---
 
@@ -319,6 +269,10 @@ First run downloads mmdc via npx — may take ~30s.
 
 **Label quoting rule**: Always use `["label text"]` instead of `[label text]` whenever the label contains parentheses, commas, `@`, `/`, `<`, `>`, or `:`. When in doubt, quote it — `["My label"]` is always safer than `[My label]`. This single rule prevents ~50% of render failures. See `references/syntax-pitfalls.md` for the full list.
 
+**`flowchart` not `graph`**: Always use `flowchart TD` (modern), never `graph TD` (legacy). `graph` lacks subgraph direction support and other modern features.
+
+**`end` is reserved**: A node whose entire label is `end` will be parsed as a block terminator. Always quote it: `B["end"]`.
+
 **You cannot pixel-position elements.** All layout improvements come from:
 - **Reordering declarations** — the order nodes and edges appear in source directly influences Mermaid's placement algorithm.
 - **Changing `rankDir`** — `TD`, `LR`, `BT`, `RL` — try the orthogonal direction when crossings persist.
@@ -326,17 +280,7 @@ First run downloads mmdc via npx — may take ~30s.
 - **Using subgraphs** — constrain placement of related nodes.
 - NOT coordinate adjustments.
 
-**Line crossing reduction** (line crossing is the primary visual quality challenge in auto-generated diagrams):
-- **Node declaration order matters**: The layout engine assigns ranks based on the order nodes appear in the source. Declare nodes in reading order (top→bottom, left→right). Earlier declarations occupy higher or leftmost ranks.
-- **Minimize back-edges**: Every edge that flows "backwards" to an earlier node forces a crossing. For cycles, use State diagrams or isolate the back-edge within a specific subgraph to contain the layout impact.
-- **Group related nodes in source**: Keep nodes that belong in the same subgraph or logical group together in the code. Scattered declarations lead to scattered placement and unnecessary crossings.
-- **Use subgraphs as layout hints**: Wrapping related nodes in a `subgraph` constrains their placement, effectively cordoning off areas to prevent global crossings.
-- **Apply direction per subgraph**: Each subgraph can define its own flow direction (e.g., `direction LR`). Mixing directions can resolve density issues in specific graph sectors.
-- **Reduce fan-out at single nodes**: A single node with many outgoing edges creates a "spider web" effect. Insert an intermediate "dispatcher" or group node to flatten the fan-out. Split any node with 5+ outgoing edges.
-- **ER diagram relation ordering**: Declare the entity with the highest connectivity first. Then, declare each related entity immediately following the relation that introduces it.
-- **Sequence diagrams are crossing-free by construction**: Columns are fixed. Optimize by declaring participants in their order of interaction (initiator on the left, primary responder next).
-- **When crossings persist**: Simply switching the global orientation (e.g., changing `graph TD` to `graph LR`) often eliminates most crossings in a complex layout.
-- See `references/diagram-type-guide.md` Part 3 for the full layout optimization guide.
+**Line crossing reduction** — the primary visual quality challenge in auto-generated diagrams. Key levers: declaration order, `rankDir` switching, subgraph grouping, and fan-out splitting. Each type-specific reference in `references/types/` includes layout tips tailored to that diagram type. See `references/diagram-type-guide.md` Part 3 for the full optimization guide.
 
 **When to stop**: syntax valid, layout communicates the concept, line crossings minimized, no overlapping labels, eye flows correctly through the diagram.
 
