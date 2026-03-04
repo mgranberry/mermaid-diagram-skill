@@ -17,7 +17,7 @@ stateDiagram-v2
     Done --> [*]
 ```
 
-### Extended Example (with styling)
+### Extended Example (with composite and concurrent states)
 ```mermaid
 stateDiagram-v2
     direction LR
@@ -35,7 +35,6 @@ stateDiagram-v2
         [*] --> LoggerActive
     }
     note right of On : Main system state
-    style On fill:#f9f,stroke:#333
 ```
 
 ## All Supported Syntax
@@ -62,6 +61,7 @@ stateDiagram-v2
 - Use `stateDiagram-v2` to avoid the legacy renderer.
 - `[*]` is both the entry and exit point; ensure logical flow between them.
 - Deep nesting of states can make the diagram difficult to read.
+- `style StateName fill:#color` does not work on composite states — it silently fails. It only applies to simple (leaf) states.
 
 ## classDef Support
-Limited. Use `style StateName fill:#color` for basic node customization.
+Limited. `style StateName fill:#color` works for simple (leaf) states only — not composite states. Use `%%{init}%%` theme overrides for broader styling.
