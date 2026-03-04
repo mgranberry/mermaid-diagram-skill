@@ -1,0 +1,45 @@
+%% Sequence diagram illustrating a standard order checkout flow
+%% Demonstrates authentication validation, inventory checks, and database persistence
+%% Includes error handling for unauthorized requests
+
+sequenceDiagram
+    autonumber
+
+    %% Participant Declarations — ordered left-to-right by first interaction
+    actor User
+    participant WebApp as "Frontend (React)"
+
+    box "Internal Services" #f9f9f9
+        participant Gateway as "API Gateway"
+        participant AuthService as "Auth Service"
+        participant OrderService as "Order Service"
+    end
+    box "Persistence Layer" #e1f5fe
+        participant OrderDB as "Orders DB (Postgres)"
+    end
+
+    %% Flow Start: Authentication & Order Submission
+    User->>WebApp: Click "Place Order"
+    Note over WebApp: JSON Body:<br/>{ "items": [{"id": "SKU-100", "qty": 1}] }
+    WebApp->>Gateway: POST /api/v1/orders
+    Note right of Gateway: Authorization: Bearer JWT
+
+    Gateway->>AuthService: GET /v1/validate-token
+    alt Valid Token
+        AuthService-->>Gateway: 200 OK (user_id: 101)
+
+        %% Order Processing (success path)
+        Gateway->>+OrderService: Create Order (user_id: 101)
+        OrderService->>+OrderDB: INSERT INTO orders
+        OrderDB-->>-OrderService: 201 Created (order_id: 5001)
+
+        Note over OrderService, OrderDB: { "order_id": 5001, "status": "pending" }
+
+        OrderService-->>-Gateway: 201 Created
+        Gateway-->>WebApp: 201 Created
+        WebApp-->>User: Show Order Confirmation
+    else Invalid Token
+        AuthService-xGateway: 401 Unauthorized
+        Gateway-->>WebApp: 401 Error
+        WebApp-->>User: Show Login Prompt
+    end

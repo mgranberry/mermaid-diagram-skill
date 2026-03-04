@@ -69,14 +69,51 @@ sequenceDiagram
 - **Boxes**: `box "Label" color` ... `end`.
 
 ## Layout Tips (type-specific)
-- Sequence diagrams are crossing-free by construction.
-- Ordering participants from left (initiator) to right (final responder) is the primary layout lever.
-- Use `autonumber` to make long traces easier to discuss in documentation.
+
+### Participant Ordering (THE primary layout lever)
+
+Sequence diagrams are **crossing-free by construction** — the only layout decision you control is the left-to-right column order of participants. This single choice determines whether the diagram reads cleanly or forces the eye to zigzag.
+
+**Rule: Declare participants in order of first interaction, from initiator to final responder.**
+
+Typical pattern: `User → Frontend → API Gateway → Service → Database`
+
+```mermaid
+sequenceDiagram
+    %% LEFT: initiator → RIGHT: deepest dependency
+    actor User
+    participant UI as "Frontend"
+    participant API as "API Gateway"
+    participant DB as "Database"
+```
+
+If you skip declaration order, Mermaid assigns columns by first appearance in message lines — which often produces a worse layout. **Always declare participants explicitly at the top.**
+
+### Autonumber (always use for technical flows)
+
+`autonumber` adds sequential step numbers to every message arrow. This is not decoration — it makes the diagram **referenceable in prose**.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    Client->>API: Request    %% Step 1
+    API->>DB: Query          %% Step 2
+    DB-->>API: Result        %% Step 3
+```
+
+Without autonumber, discussing the diagram requires awkward descriptions ("the arrow from API to DB"). With it, you write: "At step 2, the API queries the database." Always include `autonumber` unless the diagram has fewer than 3 messages.
+
+### Activation Bars and alt/else
+
+- Use `+`/`-` suffixes on arrows for activation: `A->>+B: call` activates B, `B-->>-A: response` deactivates B.
+- **Never deactivate a participant inside both branches of an `alt`/`else` block.** Mermaid tracks activations linearly — deactivating in both paths causes "inactivate an inactive participant" errors. Instead, keep activations within a single branch or outside the `alt` block entirely.
 
 ## Common Pitfalls
-- Participant order in the source determines column order.
-- Avoid redefining participants mid-flow; declare all at the top.
-- Complex loops and opt blocks can become unreadable if over-nested.
+- **Omitting participant declarations** — Mermaid will infer column order from first message appearance, which usually produces a worse layout than explicit declaration.
+- **Redefining participants mid-flow** — Declare all participants at the top; don't re-declare after messages have started.
+- **Conditional deactivation** — Using `-` deactivation inside both `alt` and `else` branches causes "inactive participant" errors. Deactivate outside the block or only in one branch.
+- **Over-nesting** — Complex loops and opt blocks stacked 3+ deep become unreadable. Split into separate diagrams.
+- **Missing `autonumber`** — Technical flows without step numbers are hard to reference in surrounding documentation.
 
 ## classDef Support
 No. Minimal styling via `Note`, `rect`, and `box`.

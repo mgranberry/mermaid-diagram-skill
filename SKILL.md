@@ -44,6 +44,18 @@ Use concrete examples when:
 
 **For technical diagrams, you MUST include evidence artifacts** (see below).
 
+### Audience Density Guide
+
+Match diagram density to the audience and purpose:
+
+| Audience | Node Count | Detail Level | Example |
+|----------|-----------|--------------|---------|
+| Executive / overview | 5–7 | High-level boxes, no attributes | "Client → API → Database" |
+| Technical documentation | 10–15 | Subgraphs, edge labels, evidence artifacts | Architecture with service names + endpoints |
+| Deep reference | 15–20, then split | Full attributes, Notes, companion files | Split into Context → Container → Component |
+
+When the same system needs multiple audiences, create separate diagrams — not one diagram that tries to serve everyone.
+
 ---
 
 ## Research Mandate (For Technical Diagrams)
@@ -317,12 +329,14 @@ First run downloads mmdc via npx — may take ~30s.
 **The loop:**
 1. Write Mermaid syntax.
 2. Run render script.
-3a. If mmdc fails with a syntax error: read the error message, fix the syntax (usually: unquoted special chars, wrong keyword, missing `end`).
+3a. If mmdc fails with a syntax error: read the error message, fix the syntax. Consult `references/syntax-pitfalls.md` for the most common failures (usually: unquoted special chars, wrong keyword, missing `end`).
 3b. If mmdc succeeds: view the PNG, assess the layout.
 4. If layout is poor: restructure — reorder node/edge declarations to change placement, switch `rankDir` (TD ↔ LR), add or remove subgraphs.
 5. Re-render → repeat until the layout communicates the concept cleanly.
 
-**You cannot pixel-position elements** All layout improvements come from:
+**Label quoting rule**: Always use `["label text"]` instead of `[label text]` whenever the label contains parentheses, commas, `@`, `/`, `<`, `>`, or `:`. When in doubt, quote it — `["My label"]` is always safer than `[My label]`. This single rule prevents ~50% of render failures. See `references/syntax-pitfalls.md` for the full list.
+
+**You cannot pixel-position elements.** All layout improvements come from:
 - **Reordering declarations** — the order nodes and edges appear in source directly influences Mermaid's placement algorithm.
 - **Changing `rankDir`** — `TD`, `LR`, `BT`, `RL` — try the orthogonal direction when crossings persist.
 - Consider whether hidden lines would be an appropriate fix for the issue.
