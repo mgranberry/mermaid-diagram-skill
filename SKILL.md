@@ -16,7 +16,6 @@ Generate `.mmd` files (or fenced ` ```mermaid ` blocks in `.md` files when embed
 | `references/mermaid-theme.md` | Applying `classDef` semantic styling or customizing colors. Contains the recipe table (trigger, success, error, ai, decision) and per-diagram-type support notes. |
 | `references/mermaidConfig.json` | Changing global Mermaid renderer settings (theme variables, font size, etc.). |
 | `references/render_mermaid.sh` | The render script. Invoked via bash, not read. See Render & Validate below. |
-| `references/diagram-type-guide.md` | Layout optimization deep-dive (Part 3: line-crossing reduction strategies). Consult when layout is poor after initial render. |
 | `references/examples/` | Validated `.mmd` examples (`architecture.mmd`, `sequence-api.mmd`). Review for inspiration or to verify your syntax against known-good patterns. |
 
 ## Customization
@@ -273,14 +272,16 @@ First run downloads mmdc via npx — may take ~30s.
 
 **`end` is reserved**: A node whose entire label is `end` will be parsed as a block terminator. Always quote it: `B["end"]`.
 
-**You cannot pixel-position elements.** All layout improvements come from:
-- **Reordering declarations** — the order nodes and edges appear in source directly influences Mermaid's placement algorithm.
-- **Changing `rankDir`** — `TD`, `LR`, `BT`, `RL` — try the orthogonal direction when crossings persist.
-- Consider whether hidden lines would be an appropriate fix for the issue.
-- **Using subgraphs** — constrain placement of related nodes.
-- NOT coordinate adjustments.
+**You cannot pixel-position elements.** All layout improvements come from declaration order, `rankDir`, subgraphs, and hidden lines — not coordinate adjustments.
 
-**Line crossing reduction** — the primary visual quality challenge in auto-generated diagrams. Key levers: declaration order, `rankDir` switching, subgraph grouping, and fan-out splitting. Each type-specific reference in `references/types/` includes layout tips tailored to that diagram type. See `references/diagram-type-guide.md` Part 3 for the full optimization guide.
+**Line crossing reduction** — the primary visual quality challenge in auto-generated diagrams:
+- **Declaration order matters**: The layout engine assigns ranks based on source order. Declare nodes in reading order (top→bottom or left→right). Earlier declarations get higher or leftmost ranks.
+- **Minimize back-edges**: Every edge flowing "backwards" to an earlier node forces a crossing. For cycles, use State diagrams or isolate the back-edge in a subgraph.
+- **Group related nodes in source**: Keep nodes in the same logical group adjacent in code. Scattered declarations → scattered placement → crossings.
+- **Subgraphs as layout hints**: Wrapping related nodes in a `subgraph` constrains placement, preventing global crossings. Each subgraph can define its own `direction` (e.g., `direction LR`) to resolve density issues.
+- **Reduce fan-out**: A single node with 5+ outgoing edges creates spider-web layouts. Insert a dispatcher/group node to flatten.
+- **Switch orientation**: When crossings persist, try the orthogonal `rankDir` (`TD` ↔ `LR`). This alone often eliminates most crossings.
+- **Hidden lines**: Consider whether invisible edges would help constrain node placement.
 
 **When to stop**: syntax valid, layout communicates the concept, line crossings minimized, no overlapping labels, eye flows correctly through the diagram.
 

@@ -47,7 +47,7 @@ The skill handles the rest — concept mapping, diagram type selection, layout o
 | `references/render_mermaid.sh` | Renders `.mmd` to PNG via `npx mmdc` |
 | `references/mermaidConfig.json` | Brand theme config (single customization point) |
 | `references/mermaid-theme.md` | `classDef` semantic style recipes |
-| `references/diagram-type-guide.md` | Decision matrix + layout optimization |
+| `references/syntax-pitfalls.md` | Common syntax errors and `<br>` compatibility matrix |
 | `references/types/flowchart.md` | Flowchart syntax reference |
 | `references/types/sequence.md` | Sequence diagram syntax reference |
 | `references/types/state.md` | State diagram syntax reference |
