@@ -11,7 +11,7 @@ Generate `.mmd` files (or fenced ` ```mermaid ` blocks in `.md` files when embed
 
 | File | Load when... |
 |------|-------------|
-| `references/types/<type>.md` | After choosing diagram type (Step 5). Full syntax, examples, layout tips, line-break rules, and pitfalls for that type. |
+| `references/types/<type>.md` | After choosing diagram type (Step 6). Full syntax, examples, layout tips, line-break rules, and pitfalls for that type. |
 | `references/syntax-pitfalls.md` | Render fails or you need to debug syntax. Covers quoting rules, `<br>` compatibility matrix (Section 9), reserved words, and common errors. |
 | `references/mermaid-theme.md` | Applying `classDef` semantic styling or customizing colors. Contains the recipe table (trigger, success, error, ai, decision) and per-diagram-type support notes. |
 | `references/mermaidConfig.json` | Changing global Mermaid renderer settings (theme variables, font size, etc.). |
@@ -20,7 +20,7 @@ Generate `.mmd` files (or fenced ` ```mermaid ` blocks in `.md` files when embed
 
 ## Customization
 
-To customize brand styles, edit `references/mermaid-theme.md` and `references/mermaidConfig.json`. These are the single touchpoints. Do not hardcode colors in diagrams unless specifically requested; prefer sourcing values from a per-project configuration.
+To customize brand styles, edit `references/mermaid-theme.md` and `references/mermaidConfig.json`.
 
 ---
 
@@ -34,42 +34,43 @@ A diagram isn't formatted text. It's a visual argument that shows relationships,
 
 **The Education Test**: Could someone learn something concrete from this diagram, or does it just label boxes? A good diagram teaches—it shows actual formats, real event names, concrete examples.
 
+| Bad (Displaying) | Good (Arguing) |
+|------------------|----------------|
+| 5 equal boxes with labels | Each concept has a shape that mirrors its behavior |
+| Card grid layout | Visual structure matches conceptual structure |
+| Icons decorating text | Shapes that ARE the meaning |
+| Same container for everything | Distinct visual vocabulary per concept |
+
 ---
 
-## Depth Assessment (Do This First)
+## Design Process
 
-Before designing, determine what level of detail this diagram needs:
+### Step 0: Assess Depth and Audience
 
-### Simple/Conceptual Diagrams
-Use abstract shapes when:
-- Explaining a mental model or philosophy
-- The audience doesn't need technical specifics
-- The concept IS the abstraction (e.g., "separation of concerns")
+Before anything else, determine what level of detail this diagram needs:
 
-### Comprehensive/Technical Diagrams
-Use concrete examples when:
-- Diagramming a real system, protocol, or architecture
-- The diagram will be used to teach or explain (e.g., YouTube video)
-- The audience needs to understand what things actually look like
-- You're showing how multiple technologies integrate
+- **Simple/Conceptual**: Abstract shapes, labels, relationships. Use when explaining a mental model, the audience already knows the details, or the concept IS the abstraction.
+- **Comprehensive/Technical**: Concrete examples, code snippets, real data. Use when diagramming a real system, creating educational content, or showing how technologies integrate.
 
-**For technical diagrams, you MUST include evidence artifacts** (see below).
+| Simple Diagram | Comprehensive Diagram |
+|----------------|----------------------|
+| Generic labels: "Input" → "Process" → "Output" | Shows what the input/output actually looks like |
+| Named boxes: "API", "Database", "Client" | Named boxes + real requests/responses |
+| "Events" or "Messages" label | Real event/message names from the spec |
+| ~30 seconds to explain | ~2-3 minutes of teaching content |
+| Viewer learns the structure | Viewer learns the structure AND the details |
 
-### Audience Density Guide
+Match density to audience:
 
-Match diagram density to the audience and purpose:
-
-| Audience | Node Count | Detail Level | Example |
-|----------|-----------|--------------|---------|
-| Executive / overview | 5–7 | High-level boxes, no attributes | "Client → API → Database" |
-| Technical documentation | 10–15 | Subgraphs, edge labels, evidence artifacts | Architecture with service names + endpoints |
-| Deep reference | 15–20, then split | Full attributes, Notes, companion files | Split into Context → Container → Component |
+| Audience | Node Count | Detail Level |
+|----------|-----------|--------------|
+| Executive / overview | 5–7 | High-level boxes, no attributes |
+| Technical documentation | 10–15 | Subgraphs, edge labels, evidence artifacts |
+| Deep reference | 15–20, then split | Full attributes, Notes, companion files |
 
 When the same system needs multiple audiences, create separate diagrams — not one diagram that tries to serve everyone.
 
----
-
-## Research Mandate (For Technical Diagrams)
+### Step 1: Research (Comprehensive diagrams only)
 
 **Before drawing anything technical, research the actual specifications.**
 
@@ -82,86 +83,14 @@ If you're diagramming a protocol, API, or framework:
 Bad: "Protocol" → "Frontend"
 Good: "AG-UI streams events (RUN_STARTED, STATE_DELTA, A2UI_UPDATE)" → "CopilotKit renders via createA2UIMessageRenderer()"
 
-**Research makes diagrams accurate AND educational.**
-
----
-
-## Evidence Artifacts
-
-Evidence artifacts are concrete examples that prove your diagram is accurate and help viewers learn. Include them in technical diagrams.
-
-**Techniques** (syntax details are in each type-specific reference):
-- **Notes** (sequence diagrams) for data payloads and message formats.
-- **Multi-line node labels** using `<br>` for concise inline evidence.
-- **Subgraph titles** to label regions.
-- **Companion .md files** for large payloads or code snippets that won't fit in node text.
-
-The key principle: **show what things actually look like**, not just what they're called.
-
----
-
-## Multi-Zoom Architecture
-
-Comprehensive diagrams operate at multiple zoom levels simultaneously. Think of it like a map that shows both the country borders AND the street names.
-
-### Level 1: Summary Flow
-A simplified overview showing the full pipeline or process at a glance. Often placed at the top or bottom of the diagram.
-
-*Example*: `Input → Processing → Output` or `Client → Server → Database`
-
-### Level 2: Section Boundaries
-Labeled regions that group related components. These create visual "rooms" that help viewers understand what belongs together.
-
-*Example*: Grouping by responsibility (Backend / Frontend), by phase (Setup / Execution / Cleanup), or by team (User / System / External)
-
-### Level 3: Detail Inside Sections
-Evidence artifacts, code snippets, and concrete examples within each section. This is where the educational value lives.
-
-*Example*: Inside a "Backend" section, you might show the actual API response format, not just a box labeled "API Response"
-
-**For comprehensive diagrams, aim to include all three levels.** The summary gives context, the sections organize, and the details teach.
-
-### Bad vs Good
-
-| Bad (Displaying) | Good (Arguing) |
-|------------------|----------------|
-| 5 equal boxes with labels | Each concept has a shape that mirrors its behavior |
-| Card grid layout | Visual structure matches conceptual structure |
-| Icons decorating text | Shapes that ARE the meaning |
-| Same container for everything | Distinct visual vocabulary per concept |
-
-### Simple vs Comprehensive (Know Which You Need)
-
-| Simple Diagram | Comprehensive Diagram |
-|----------------|----------------------|
-| Generic labels: "Input" → "Process" → "Output" | Specific: shows what the input/output actually looks like |
-| Named boxes: "API", "Database", "Client" | Named boxes + examples of actual requests/responses |
-| "Events" or "Messages" label | Timeline with real event/message names from the spec |
-| "UI" or "Dashboard" rectangle | Mockup showing actual UI elements and content |
-| ~30 seconds to explain | ~2-3 minutes of teaching content |
-| Viewer learns the structure | Viewer learns the structure AND the details |
-
-**Simple diagrams** are fine for abstract concepts, quick overviews, or when the audience already knows the details. **Comprehensive diagrams** are needed for technical architectures, tutorials, educational content, or when you want the diagram itself to teach.
-
----
-
-## Design Process
-
-### Step 0: Assess Depth Required
-Before anything else, determine if this needs to be:
-- **Simple/Conceptual**: Abstract shapes, labels, relationships (mental models, philosophies)
-- **Comprehensive/Technical**: Concrete examples, code snippets, real data (systems, architectures, tutorials)
-
-**If comprehensive**: Do research first. Look up actual specs, formats, event names, APIs.
-
-### Step 1: Understand Deeply
+### Step 2: Understand Deeply
 Read the content. For each concept, ask:
 - What does this concept **DO**? (not what IS it)
 - What relationships exist between concepts?
 - What's the core transformation or flow?
 - **What would someone need to SEE to understand this?** (not just read about)
 
-### Step 2: Map Concepts to Patterns
+### Step 3: Map Concepts to Patterns
 For each concept, find the visual pattern that mirrors its behavior:
 
 | If the concept... | Use this pattern |
@@ -175,19 +104,43 @@ For each concept, find the visual pattern that mirrors its behavior:
 | Compares two things | **Side-by-side** (parallel subgraphs) |
 | Separates into phases | **Gap/Break** (subgraph boundaries) |
 
-### Step 3: Ensure Variety
+### Step 4: Ensure Variety
 For multi-concept diagrams: **each major concept must use a different visual pattern**. No uniform cards or grids.
 
-### Step 4: Sketch the Flow
+### Step 5: Sketch the Flow
 Before writing syntax, mentally trace how the eye moves through the diagram. There should be a clear visual story.
 
-### Step 5: Generate Mermaid Syntax
-1. Choose diagram type using the Decision Matrix below, then load the per-type reference: open `references/types/<chosen-type>.md` for full syntax.
+### Step 6: Generate Mermaid Syntax
+1. Choose diagram type using the Decision Matrix below, then load `references/types/<chosen-type>.md` for full syntax.
 2. Write the syntax — start with a `%%` comment block naming the diagram type and describing each section.
 3. Use meaningful node IDs (not `A`, `B`, `C` — use `authService`, `dbWrite`, `userInput`).
 4. Add `classDef` for semantic styling (trigger, success, error, ai, decision) — pull from `references/mermaid-theme.md`.
+5. **Output format**: Create a `.mmd` file by default. Use a fenced ` ```mermaid ` block when the user says "embed", "add to docs", "in README", or the target is a `.md` file.
 
-### Step 6: Render & Validate
+#### Evidence Artifacts (Comprehensive diagrams)
+
+Include concrete examples that prove accuracy and help viewers learn:
+- **Notes** (sequence diagrams) for data payloads and message formats.
+- **Multi-line node labels** using `<br>` for concise inline evidence.
+- **Subgraph titles** to label regions.
+- **Companion .md files** for large payloads or code snippets that won't fit in node text.
+
+The key principle: **show what things actually look like**, not just what they're called.
+
+#### Multi-Zoom (Comprehensive diagrams)
+
+Aim for three zoom levels simultaneously:
+1. **Summary Flow** — simplified overview of the full pipeline (`Input → Processing → Output`)
+2. **Section Boundaries** — labeled subgraphs grouping related components (by responsibility, phase, or team)
+3. **Detail Inside Sections** — evidence artifacts and concrete examples within each section
+
+#### Splitting Large Diagrams
+
+- Keep nodes to ~20 max before splitting into multiple diagrams.
+- For complex systems: one `.mmd` per layer (Context → Container → Component).
+- Break dense subgraphs into separate files with cross-references in prose.
+
+### Step 7: Render & Validate
 Run the render script and validate the output. See the **Render & Validate** section below.
 
 ---
@@ -222,31 +175,6 @@ Do **not** use these types — they lack structural argument capability or are t
 | Git Graph | Limited to git branch visualization |
 | XY Chart | Quantitative data charting rather than structural diagramming |
 | User Journey | Overly specific; typically better represented as a Sequence Diagram |
-
----
-
-## Semantic Styling
-
-Use `classDef` for **semantic meaning**, not decoration. See `references/mermaid-theme.md` for the full recipe table and per-diagram-type support notes.
-
----
-
-## Output Format
-
-- **Default**: Create a `.mmd` file.
-- **If embedding**: When the user says "embed", "add to docs", "in README", or the target is a `.md` file → output a fenced ` ```mermaid ` block instead.
-- **When in doubt**: `.mmd` file.
-
----
-
-## Large Diagram Strategy
-
-Mermaid syntax is compact. Focus on readability:
-- Use meaningful node IDs (`authService`, not `A`).
-- Add `%%` comments for section breaks within the diagram.
-- Keep nodes to ~20 max before splitting into multiple diagrams.
-- For complex systems: one `.mmd` per layer (Context → Container → Component).
-- Break dense subgraphs into separate files with cross-references in prose.
 
 ---
 
