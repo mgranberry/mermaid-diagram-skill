@@ -1,0 +1,62 @@
+%% Architecture: Cloud Native E-Commerce Platform
+%% Purpose: Demonstrates high-quality Mermaid flowchart patterns
+%% Features: Subgraphs, semantic class styling, varied node shapes, and mixed edge types
+
+flowchart TD
+    %% Global Styles
+    classDef entry fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef storage fill:#e1f5fe,stroke:#01579b,stroke-dasharray: 5 5;
+    classDef external fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+
+    %% Client Layer
+    subgraph clientLayer ["User Access Layer"]
+        webApp(["Web Application"])
+        mobileApp(["Mobile Application"])
+    end
+
+    %% Edge / Gateway Layer
+    subgraph gatewayLayer ["Edge Services"]
+        apiGateway{"API Gateway"}
+        authService["Auth Service"]
+    end
+
+    %% Application Core
+    subgraph serviceLayer ["Microservices Cluster"]
+        orderService["Order Processing"]
+        productService["Product Catalog"]
+        paymentService["Payment Adapter"]
+    end
+
+    %% Persistence Layer
+    subgraph dataLayer ["Data Persistence"]
+        mainDB[("Primary SQL Database")]
+        sessionCache[("Redis Session Store")]
+    end
+
+    %% External Systems
+    stripeAPI[["Stripe API Gateway"]]:::external
+
+    %% Flow Definitions
+    %% Entry points
+    webApp -->|"HTTPS/REST"| apiGateway
+    mobileApp -->|"HTTPS/gRPC"| apiGateway
+
+    %% Gateway to Auth and Services
+    apiGateway == "Verify Token" ==> authService
+    apiGateway -.->|"Routed Requests"| orderService
+    apiGateway -.->|"Browsing"| productService
+
+    %% Service interactions
+    orderService -->|"Execute Payment"| paymentService
+    paymentService ==>|"Process Transaction"| stripeAPI
+    
+    %% Data Access
+    orderService -->|"Read/Write"| mainDB
+    productService -->|"Read Only"| mainDB
+    authService ---|"Check Session"| sessionCache
+
+    %% Apply semantic classes
+    webApp:::entry
+    mobileApp:::entry
+    mainDB:::storage
+    sessionCache:::storage

@@ -1,4 +1,5 @@
-.venv/
 *.png
-uv.lock
-__pycache__/
+*.svg
+node_modules/
+.idea/
+.sisyphus/
