@@ -9,7 +9,7 @@ Compatible with any coding agent that supports skills. For agents that read from
 - **Diagrams that argue, not display.** Every shape and group mirrors the concept it represents — fan-outs for one-to-many, timelines for sequences, convergence for aggregation. No uniform card grids.
 - **Evidence artifacts.** Technical diagrams include real code snippets, actual JSON payloads, and precise protocol event names.
 - **Built-in visual validation.** The render pipeline lets the agent see its own output, catch syntax errors, and fix layout issues in a loop before delivering.
-- **Brand-customizable.** All styles and configurations live in two files (`references/mermaidConfig.json` and `references/mermaid-theme.md`). Swap them out and every diagram follows your brand's look and feel.
+- **Brand-customizable.** All styles live in one file (`references/mermaid-theme.md`). Diagrams use `classDef` semantic styles with explicit fill, stroke, and text colors — making them self-contained and readable in both light and dark mode on GitHub, VS Code, Obsidian, or any Mermaid-capable viewer.
 
 ## Installation
 
@@ -34,8 +34,10 @@ The skill handles the rest — concept mapping, diagram type selection, layout o
 
 ## Customize
 
-- **Config**: Edit `references/mermaidConfig.json` for global Mermaid settings.
-- **Theme**: Edit `references/mermaid-theme.md` to customize `classDef` semantic style recipes (trigger, success, error, ai, decision).
+Edit `references/mermaid-theme.md` — the single source of truth for all theming. It contains:
+- Dark/light mode color guidelines (ensures diagrams are readable in both themes)
+- `classDef` semantic style recipes (trigger, success, error, ai, decision, primary)
+- Per-diagram-type support notes
 
 ## File Structure
 
@@ -45,8 +47,7 @@ The skill handles the rest — concept mapping, diagram type selection, layout o
 | `README.md` | This file |
 | `.gitignore` | Ignores `*.png`, `*.svg`, `node_modules/` |
 | `references/render_mermaid.sh` | Renders `.mmd` to PNG via `npx mmdc` |
-| `references/mermaidConfig.json` | Brand theme config (single customization point) |
-| `references/mermaid-theme.md` | `classDef` semantic style recipes |
+| `references/mermaid-theme.md` | Brand theming — global colors, semantic `classDef` recipes, diagram-type support (single customization point) |
 | `references/syntax-pitfalls.md` | Common syntax errors and `<br>` compatibility matrix |
 | `references/types/flowchart.md` | Flowchart syntax reference |
 | `references/types/sequence.md` | Sequence diagram syntax reference |

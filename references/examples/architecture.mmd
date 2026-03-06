@@ -3,10 +3,12 @@
 %% Features: Subgraphs, semantic class styling, varied node shapes, and mixed edge types
 
 flowchart TD
-    %% Global Styles
-    classDef entry fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef storage fill:#e1f5fe,stroke:#01579b,stroke-dasharray: 5 5;
-    classDef external fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    %% Global Styles — every classDef sets fill, stroke, AND color for dark/light mode compatibility
+    classDef entry fill:#fed7aa,stroke:#c2410c,color:#374151
+    classDef gateway fill:#fef3c7,stroke:#b45309,color:#374151
+    classDef service fill:#ddd6fe,stroke:#6d28d9,color:#374151
+    classDef storage fill:#e0f2fe,stroke:#0369a1,color:#374151,stroke-dasharray: 5 5
+    classDef external fill:#fecaca,stroke:#b91c1c,color:#374151
 
     %% Client Layer
     subgraph clientLayer ["User Access Layer"]
@@ -58,5 +60,10 @@ flowchart TD
     %% Apply semantic classes
     webApp:::entry
     mobileApp:::entry
+    apiGateway:::gateway
+    authService:::service
+    orderService:::service
+    productService:::service
+    paymentService:::service
     mainDB:::storage
     sessionCache:::storage
