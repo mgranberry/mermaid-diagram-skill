@@ -20,11 +20,8 @@ if [[ -z "$OUTPUT" ]]; then
   OUTPUT="${INPUT%.*}.png"
 fi
 
-# Get the directory of this script for config file path
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-# Invoke mmdc via npx
-if ! npx --yes -p @mermaid-js/mermaid-cli mmdc -i "$INPUT" -o "$OUTPUT" -c "$SCRIPT_DIR/mermaidConfig.json"; then
+# Invoke mmdc via npx (diagrams carry their own classDef styles)
+if ! npx --yes -p @mermaid-js/mermaid-cli mmdc -i "$INPUT" -o "$OUTPUT"; then
   echo "Error: mmdc rendering failed" >&2
   exit 1
 fi

@@ -13,14 +13,13 @@ Generate `.mmd` files (or fenced ` ```mermaid ` blocks in `.md` files when embed
 |------|-------------|
 | `references/types/<type>.md` | After choosing diagram type (Step 6). Full syntax, examples, layout tips, line-break rules, and pitfalls for that type. |
 | `references/syntax-pitfalls.md` | Render fails or you need to debug syntax. Covers quoting rules, `<br>` compatibility matrix (Section 9), reserved words, and common errors. |
-| `references/mermaid-theme.md` | Applying `classDef` semantic styling or customizing colors. Contains the recipe table (trigger, success, error, ai, decision) and per-diagram-type support notes. |
-| `references/mermaidConfig.json` | Changing global Mermaid renderer settings (theme variables, font size, etc.). |
+| `references/mermaid-theme.md` | **The single theming file.** Dark/light mode color guidelines, `classDef` semantic style recipes (trigger, success, error, ai, decision), and per-diagram-type support notes. |
 | `references/render_mermaid.sh` | The render script. Invoked via bash, not read. See Render & Validate below. |
 | `references/examples/` | Validated `.mmd` examples (`architecture.mmd`, `sequence-api.mmd`). Review for inspiration or to verify your syntax against known-good patterns. |
 
 ## Customization
 
-To customize brand styles, edit `references/mermaid-theme.md` and `references/mermaidConfig.json`.
+To customize brand styles, edit `references/mermaid-theme.md` — this is the single source of truth for all theming (semantic node styles and dark/light mode color guidelines).
 
 ---
 
@@ -114,7 +113,7 @@ Before writing syntax, mentally trace how the eye moves through the diagram. The
 1. Choose diagram type using the Decision Matrix below, then load `references/types/<chosen-type>.md` for full syntax.
 2. Write the syntax — start with a `%%` comment block naming the diagram type and describing each section.
 3. Use meaningful node IDs (not `A`, `B`, `C` — use `authService`, `dbWrite`, `userInput`).
-4. Add `classDef` for semantic styling (trigger, success, error, ai, decision) — pull from `references/mermaid-theme.md`.
+4. Add `classDef` for semantic styling (trigger, success, error, ai, decision) — pull from `references/mermaid-theme.md` (Section 2). Follow the color selection guidelines in Section 1 to ensure dark/light mode compatibility.
 5. **Output format**: Create a `.mmd` file by default. Use a fenced ` ```mermaid ` block when the user says "embed", "add to docs", "in README", or the target is a `.md` file.
 
 #### Evidence Artifacts (Comprehensive diagrams)
@@ -233,18 +232,19 @@ First run downloads mmdc via npx — may take ~30s.
 
 **Mermaid-Specific:**
 11. `classDef` used for semantic styling (trigger, success, error, ai, decision)?
-12. Output format correct (`.mmd` vs fenced block)?
-13. No excluded diagram types used? (Excluded: Pie Chart, Gantt, Git Graph, XY Chart, User Journey — see Decision Matrix above)
-14. Node/edge declaration order follows reading direction (minimize line crossings)?
-15. No single node has 5+ edges without a dispatcher split?
-16. Back-edges isolated (cycles handled in State diagram or contained subgraph)?
+12. Every `classDef` sets `fill`, `stroke`, AND `color`? (never omit `color` — see `references/mermaid-theme.md` Section 1 for dark/light mode guidelines)
+13. Output format correct (`.mmd` vs fenced block)?
+14. No excluded diagram types used? (Excluded: Pie Chart, Gantt, Git Graph, XY Chart, User Journey — see Decision Matrix above)
+15. Node/edge declaration order follows reading direction (minimize line crossings)?
+16. No single node has 5+ edges without a dispatcher split?
+17. Back-edges isolated (cycles handled in State diagram or contained subgraph)?
 
 **Render Validation (mandatory):**
-17. Syntax validated: mmdc runs without error?
-18. PNG viewed: layout visually inspected?
-19. No overlapping labels or crossed text?
-20. Eye flows naturally through the diagram?
-21. Line crossings minimized (tried reordering + rankDir if needed)?
+18. Syntax validated: mmdc runs without error?
+19. PNG viewed: layout visually inspected?
+20. No overlapping labels or crossed text?
+21. Eye flows naturally through the diagram?
+22. Line crossings minimized (tried reordering + rankDir if needed)?
 
 **Cleanup**
 Once a user is happy with the output, remove any temporary output like pngs or mmd files.
