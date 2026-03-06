@@ -2,7 +2,7 @@
 
 A coding agent skill that generates beautiful and practical Mermaid diagrams from natural language descriptions. Not just boxes-and-arrows — diagrams that **argue visually**.
 
-Compatible with any coding agent that supports skills. For agents that read from `.claude/skills/` (like [Claude Code](https://docs.anthropic.com/en/docs/claude-code) and [OpenCode](https://github.com/nicepkg/OpenCode)), just drop it in and go.
+Compatible with [Claude Code](https://docs.anthropic.com/en/docs/claude-code), [OpenCode](https://github.com/nicepkg/OpenCode), [GitHub Copilot](https://docs.github.com/en/copilot), and any agent that supports the [Agent Skills](https://agentskills.io) standard.
 
 ## What Makes This Different
 
@@ -13,12 +13,33 @@ Compatible with any coding agent that supports skills. For agents that read from
 
 ## Installation
 
-Clone or download this repo, then copy it into your project's `.claude/skills/` directory:
+This skill follows the [Agent Skills](https://agentskills.io) open standard — a `SKILL.md` file in a folder with supporting resources. Install it wherever your agent looks for skills.
+
+### Claude Code / OpenCode
+
+These agents read from `.claude/skills/`:
 
 ```bash
-git clone https://github.com/coleam00/mermaid-diagram-skill.git
+git clone https://github.com/mgranberry/mermaid-diagram-skill.git
 cp -r mermaid-diagram-skill .claude/skills/mermaid-diagram
 ```
+
+### GitHub Copilot (VS Code, CLI, and coding agent)
+
+Copilot supports Agent Skills natively ([docs](https://code.visualstudio.com/docs/copilot/customization/agent-skills)). It reads from `.github/skills/`, `.claude/skills/`, and `.agents/skills/`:
+
+```bash
+git clone https://github.com/mgranberry/mermaid-diagram-skill.git
+cp -r mermaid-diagram-skill .github/skills/mermaid-diagram
+```
+
+Once installed, Copilot discovers the skill automatically from the `SKILL.md` frontmatter. You can invoke it via the `/mermaid-diagram` slash command in chat, or just ask Copilot to create a diagram and it will load the skill when relevant.
+
+> **Tip:** Type `/skills` in the Copilot chat input to see all available skills and verify it was detected.
+
+### Other agents
+
+Any agent that supports the [Agent Skills](https://agentskills.io) standard can use this skill. Copy the folder to your agent's skills directory and ensure the `SKILL.md` file is at the root of the skill folder.
 
 ## Setup
 
